@@ -396,7 +396,7 @@ export const createEmptyResume = createServerFn({ method: "POST" })
     const cap = ent?.max_resumes ?? 1;
     if ((count ?? 0) >= cap) throw new Error(`Free plan limit reached — you can create ${cap} resume(s). Upgrade for more.`);
     const { data: row, error } = await supabase.from("resumes")
-      .insert({ user_id: userId, current_json: EMPTY_RESUME as unknown as object, title: "Untitled resume" })
+      .insert({ user_id: userId, current_json: EMPTY_RESUME as any, title: "Untitled resume" })
       .select("id").single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
