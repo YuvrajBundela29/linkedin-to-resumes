@@ -9,54 +9,166 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedRResumeIdRouteImport } from './routes/_authenticated/r.$resumeId'
 import { Route as ApiResumeResumeIdPdfRouteImport } from './routes/api/resume.$resumeId.pdf'
+import { Route as AuthenticatedRResumeIdTailorRouteImport } from './routes/_authenticated/r.$resumeId.tailor'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRResumeIdRoute = AuthenticatedRResumeIdRouteImport.update({
+  id: '/r/$resumeId',
+  path: '/r/$resumeId',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiResumeResumeIdPdfRoute = ApiResumeResumeIdPdfRouteImport.update({
   id: '/api/resume/$resumeId/pdf',
   path: '/api/resume/$resumeId/pdf',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRResumeIdTailorRoute =
+  AuthenticatedRResumeIdTailorRouteImport.update({
+    id: '/tailor',
+    path: '/tailor',
+    getParentRoute: () => AuthenticatedRResumeIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/account': typeof AuthenticatedAccountRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
+  '/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
   '/api/resume/$resumeId/pdf': typeof ApiResumeResumeIdPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/account': typeof AuthenticatedAccountRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
+  '/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
   '/api/resume/$resumeId/pdf': typeof ApiResumeResumeIdPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
+  '/_authenticated/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
   '/api/resume/$resumeId/pdf': typeof ApiResumeResumeIdPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/resume/$resumeId/pdf'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/account'
+    | '/dashboard'
+    | '/r/$resumeId'
+    | '/r/$resumeId/tailor'
+    | '/api/resume/$resumeId/pdf'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/resume/$resumeId/pdf'
-  id: '__root__' | '/' | '/api/resume/$resumeId/pdf'
+  to:
+    | '/'
+    | '/auth'
+    | '/account'
+    | '/dashboard'
+    | '/r/$resumeId'
+    | '/r/$resumeId/tailor'
+    | '/api/resume/$resumeId/pdf'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/account'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/r/$resumeId'
+    | '/_authenticated/r/$resumeId/tailor'
+    | '/api/resume/$resumeId/pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   ApiResumeResumeIdPdfRoute: typeof ApiResumeResumeIdPdfRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/r/$resumeId': {
+      id: '/_authenticated/r/$resumeId'
+      path: '/r/$resumeId'
+      fullPath: '/r/$resumeId'
+      preLoaderRoute: typeof AuthenticatedRResumeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/resume/$resumeId/pdf': {
       id: '/api/resume/$resumeId/pdf'
@@ -65,11 +177,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiResumeResumeIdPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/r/$resumeId/tailor': {
+      id: '/_authenticated/r/$resumeId/tailor'
+      path: '/tailor'
+      fullPath: '/r/$resumeId/tailor'
+      preLoaderRoute: typeof AuthenticatedRResumeIdTailorRouteImport
+      parentRoute: typeof AuthenticatedRResumeIdRoute
+    }
   }
 }
 
+interface AuthenticatedRResumeIdRouteChildren {
+  AuthenticatedRResumeIdTailorRoute: typeof AuthenticatedRResumeIdTailorRoute
+}
+
+const AuthenticatedRResumeIdRouteChildren: AuthenticatedRResumeIdRouteChildren =
+  {
+    AuthenticatedRResumeIdTailorRoute: AuthenticatedRResumeIdTailorRoute,
+  }
+
+const AuthenticatedRResumeIdRouteWithChildren =
+  AuthenticatedRResumeIdRoute._addFileChildren(
+    AuthenticatedRResumeIdRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedRResumeIdRoute: typeof AuthenticatedRResumeIdRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedRResumeIdRoute: AuthenticatedRResumeIdRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   ApiResumeResumeIdPdfRoute: ApiResumeResumeIdPdfRoute,
 }
 export const routeTree = rootRouteImport
