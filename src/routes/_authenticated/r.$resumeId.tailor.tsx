@@ -23,7 +23,7 @@ function TailorPage() {
 
   const mut = useMutation({
     mutationFn: () => tailor({ data: { resumeId, jobDescription: jd } }),
-    onSuccess: () => { toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId" as any, params: { resumeId } }); },
+    onSuccess: () => { toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId", params: { resumeId } }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -31,7 +31,7 @@ function TailorPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="mx-auto max-w-3xl px-6 h-14 flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild><Link to={"/r/$resumeId" as any} params={{ resumeId }}><ArrowLeft className="w-4 h-4" /></Link></Button>
+          <Button variant="ghost" size="sm" asChild><Link to="/r/$resumeId" params={{ resumeId }}><ArrowLeft className="w-4 h-4" /></Link></Button>
           <Logo />
         </div>
       </header>

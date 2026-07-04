@@ -157,7 +157,7 @@ function Editor() {
                 </div>
               </SheetContent>
             </Sheet>
-            <Button variant="outline" size="sm" asChild><Link to={"/r/$resumeId/tailor" as any} params={{ resumeId }}><Target className="w-4 h-4 mr-1" /> Tailor</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link to="/r/$resumeId/tailor" params={{ resumeId }}><Target className="w-4 h-4 mr-1" /> Tailor</Link></Button>
             <Button size="sm" onClick={downloadPdf} className="gap-1"><Download className="w-4 h-4" /> Download PDF</Button>
           </div>
         </div>

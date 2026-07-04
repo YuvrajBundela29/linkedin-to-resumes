@@ -53,7 +53,7 @@ function Dashboard() {
       });
       toast.info("Analyzing your profile…");
       await extract({ data: { resumeId: id, fileDataUrl: dataUrl, filename: file.name } });
-      navigate({ to: "/r/$resumeId" as any, params: { resumeId: id } });
+      navigate({ to: "/r/$resumeId", params: { resumeId: id } });
     } catch (e: any) {
       toast.error(e.message ?? "Upload failed");
     } finally {
@@ -125,7 +125,7 @@ function Dashboard() {
             <div className="mt-4 grid gap-3">
               {resumesQ.data!.map((r) => (
                 <Card key={r.id} className="p-4 flex items-center justify-between hover:shadow-sm transition">
-                  <Link to={"/r/$resumeId" as any} params={{ resumeId: r.id }} className="flex items-center gap-3 flex-1 min-w-0">
+                  <Link to="/r/$resumeId" params={{ resumeId: r.id }} className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-md bg-[color:var(--color-muted)] grid place-items-center shrink-0"><FileText className="w-5 h-5" /></div>
                     <div className="min-w-0">
                       <div className="font-medium truncate">{r.title}</div>
