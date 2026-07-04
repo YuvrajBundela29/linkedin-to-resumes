@@ -1,24 +1,214 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowRight, Check, FileText, Sparkles, Zap, MessageSquare, Download } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import heroImg from "@/assets/logo.png";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "ResumeForge AI — LinkedIn PDF to interview-ready resume in 60 seconds" },
+      { name: "description", content: "Upload your LinkedIn PDF. AI builds a clean, ATS-safe resume. Edit it by chatting in plain English. Download a text-selectable PDF." },
+      { property: "og:title", content: "ResumeForge AI" },
+      { property: "og:description", content: "Turn your LinkedIn into an interview-ready resume in 60 seconds." },
+    ],
+  }),
+  component: Landing,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function useSignedIn() {
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s?.user));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+  return signedIn;
+}
+
+function Landing() {
+  const navigate = useNavigate();
+  const signedIn = useSignedIn();
+
+  const start = () => {
+    if (signedIn) navigate({ to: "/dashboard" });
+    else navigate({ to: "/auth", search: { next: "/dashboard" } });
+  };
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background/80 backdrop-blur sticky top-0 z-40">
+        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+          <Link to="/"><Logo /></Link>
+          <nav className="flex items-center gap-2">
+            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">Features</a>
+            <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">How it works</a>
+            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">Pricing</a>
+            {signedIn ? (
+              <Button asChild size="sm"><Link to="/dashboard">Dashboard</Link></Button>
+            ) : (
+              <>
+                <Button asChild variant="ghost" size="sm"><Link to="/auth" search={{ next: "/dashboard" }}>Sign in</Link></Button>
+                <Button size="sm" onClick={start}>Get started</Button>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section className="mx-auto max-w-6xl px-6 pt-20 pb-16 md:pt-28 md:pb-24">
+        <div className="grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs text-muted-foreground bg-[color:var(--color-surface)]">
+              <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> Powered by Lovable AI
+            </div>
+            <h1 className="mt-4 text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+              Turn your LinkedIn into an <span className="text-[color:var(--color-brand)]">interview-ready</span> resume in 60 seconds.
+            </h1>
+            <p className="mt-5 text-lg text-muted-foreground max-w-xl">
+              Upload your LinkedIn "Save to PDF" export. Our AI structures it into an ATS-safe resume you can polish by chatting in plain English.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button size="lg" onClick={start} className="gap-2">
+                Upload your LinkedIn PDF <ArrowRight className="w-4 h-4" />
+              </Button>
+              <Button size="lg" variant="outline" asChild><a href="#how">See how it works</a></Button>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> ATS-safe by default</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Text-selectable PDF</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> No credit card</span>
+            </div>
+          </div>
+
+          {/* Before/After preview */}
+          <div className="relative">
+            <Card className="p-4 shadow-sm">
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Before → After</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="border rounded-md p-3 bg-[color:var(--color-muted)] font-mono text-[10px] leading-snug text-muted-foreground max-h-64 overflow-hidden">
+                  Jane Doe<br/>
+                  Software Engineer at Acme Corp<br/>
+                  San Francisco Bay Area · 500+ connections<br/><br/>
+                  Experience<br/>
+                  Senior Software Engineer<br/>
+                  Acme Corp · Full-time<br/>
+                  Jan 2022 - Present · 2 yrs 6 mos<br/>
+                  San Francisco, CA<br/>
+                  - Led migration of monolith to microservices<br/>
+                  - Mentored 5 engineers<br/>
+                  ...
+                </div>
+                <div className="border rounded-md overflow-hidden bg-white text-[7px] leading-snug text-black p-3 max-h-64">
+                  <div className="font-bold text-[11px]">Jane Doe</div>
+                  <div className="text-[6px] text-neutral-500 mb-1">jane@doe.com · San Francisco, CA</div>
+                  <div className="uppercase text-[6px] font-bold border-b border-black mb-1 mt-1">Experience</div>
+                  <div className="font-bold">Senior Software Engineer, Acme Corp <span className="float-right font-normal text-neutral-500">Jan 2022 – Present</span></div>
+                  <div className="ml-2">• Led monolith → microservices migration, cutting p95 latency 42%.</div>
+                  <div className="ml-2">• Mentored 5 engineers; two promoted within a year.</div>
+                  <div className="uppercase text-[6px] font-bold border-b border-black mb-1 mt-2">Skills</div>
+                  <div>TypeScript · Go · Kubernetes · Postgres · gRPC</div>
+                </div>
+              </div>
+            </Card>
+            <img src={heroImg} alt="" className="absolute -bottom-4 -right-4 w-16 h-16 opacity-90" width={64} height={64} />
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="how" className="border-t bg-[color:var(--color-surface)]">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Three steps. One resume you'll actually send.</h2>
+          <div className="mt-12 grid md:grid-cols-3 gap-6">
+            {[
+              { icon: FileText, title: "Upload your PDF", body: "Export from LinkedIn ('Save to PDF' under More on your profile), then drop it in." },
+              { icon: Zap, title: "AI structures it", body: "We extract every role, degree, and skill into a clean, ATS-safe layout — no tables, no icons, standard headers." },
+              { icon: MessageSquare, title: "Chat to polish", body: "Ask for edits like 'shorten my summary' or 'reorder education'. The preview updates live." },
+            ].map((s, i) => (
+              <Card key={i} className="p-6">
+                <div className="w-9 h-9 rounded-md bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4">
+                  <s.icon className="w-5 h-5" />
+                </div>
+                <div className="text-sm text-muted-foreground mb-1">Step {i+1}</div>
+                <h3 className="font-semibold text-lg">{s.title}</h3>
+                <p className="text-muted-foreground mt-1">{s.body}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section id="features" className="border-t">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Designed to pass Applicant Tracking Systems.</h2>
+          <p className="text-muted-foreground mt-3 max-w-2xl">Every template follows ATS rules by default so recruiters — and their software — actually read your resume.</p>
+          <div className="mt-10 grid md:grid-cols-2 gap-x-10 gap-y-4">
+            {[
+              "Single-column layout — parsers handle it correctly",
+              "Standard fonts (Arial, Helvetica, Georgia)",
+              "Standard section headers (Experience, Education, Skills)",
+              "No text inside images or icons-only sections",
+              "Reverse-chronological order in every section",
+              "Text-selectable PDF output — never rasterized",
+              "Four templates, one JSON — swap without redoing your work",
+              "Live chat editor with tool-calling under the hood",
+            ].map((t) => (
+              <div key={t} className="flex items-start gap-2 text-sm">
+                <Check className="w-4 h-4 mt-0.5 text-[color:var(--color-brand)] shrink-0" /> <span>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section id="pricing" className="border-t bg-[color:var(--color-surface)]">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Simple pricing.</h2>
+          <div className="mt-10 grid md:grid-cols-2 gap-6 max-w-4xl">
+            <Card className="p-8">
+              <div className="text-sm font-medium">Free</div>
+              <div className="mt-2 text-4xl font-semibold">$0</div>
+              <div className="text-muted-foreground text-sm mt-1">Get started with no card.</div>
+              <ul className="mt-6 space-y-2 text-sm">
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> 1 resume</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Classic & Modern templates</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Watermark-free PDF export</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Chat-based editing</li>
+              </ul>
+              <Button className="mt-6 w-full" onClick={start}>Start free</Button>
+            </Card>
+            <Card className="p-8 border-2 border-[color:var(--color-brand)]/40">
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-medium">Pro</div>
+                <span className="text-xs rounded-full px-2 py-0.5 bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)]">Coming soon</span>
+              </div>
+              <div className="mt-2 text-4xl font-semibold">$9<span className="text-base text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-muted-foreground text-sm mt-1">For serious job seekers.</div>
+              <ul className="mt-6 space-y-2 text-sm">
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Unlimited resumes</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> All 4 templates</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Version history & rollback</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Tailor to a job description</li>
+              </ul>
+              <Button variant="outline" className="mt-6 w-full" onClick={start}>Get on the list</Button>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t">
+        <div className="mx-auto max-w-6xl px-6 py-8 flex items-center justify-between text-sm text-muted-foreground">
+          <Logo />
+          <div>© {new Date().getFullYear()} ResumeForge AI</div>
+        </div>
+      </footer>
     </div>
   );
 }
