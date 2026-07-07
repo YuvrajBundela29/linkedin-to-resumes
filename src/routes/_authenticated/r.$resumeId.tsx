@@ -43,7 +43,7 @@ function Editor() {
   const rQ = useQuery({ queryKey: ["resume", resumeId], queryFn: () => getR({ data: { resumeId } }) });
   const versionsQ = useQuery({ queryKey: ["versions", resumeId], queryFn: () => listV({ data: { resumeId } }), enabled: false });
 
-  const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", text: "Hi! Tell me what to change — e.g. *shorten my summary*, *reorder my education*, or *make it more focused on AI roles*." }]);
+  const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", text: "Hi! I can edit anything on your resume — try:\n\n- *Shorten my summary to 2 sentences*\n- *Add a bullet to my first job about leading a team of 5*\n- *Make my bullets more quantified*\n- *Reorder education so my Master's is first*\n- *Remove the third skill*" }]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -129,11 +129,15 @@ function Editor() {
           </div>
           <div className="flex items-center gap-2">
             <Select value={template} onValueChange={(v) => swapMut.mutate(v as TemplateId)}>
-              <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {TEMPLATE_IDS.map((id) => (
                   <SelectItem key={id} value={id}>
-                    {TEMPLATES[id].name} {TEMPLATES[id].tier === "pro" && <span className="text-xs text-muted-foreground ml-1">Pro</span>}
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ background: TEMPLATES[id].accent }} />
+                      {TEMPLATES[id].name}
+                      {TEMPLATES[id].tier === "pro" && <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-1">Pro</span>}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
