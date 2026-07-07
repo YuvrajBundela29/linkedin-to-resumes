@@ -212,3 +212,66 @@
 
 /* Preview frame scaling */
 .resume-scale-wrap { display: flex; justify-content: center; }
+
+/* Executive — serif, centered, navy */
+.resume-executive { font-family: Georgia, "Times New Roman", serif; padding: 54px; }
+.resume-executive .exe-header { text-align: center; }
+.resume-executive .exe-name { font-size: 30px; font-weight: 700; color: #0f2a4a; letter-spacing: 2px; margin: 0; text-transform: uppercase; }
+.resume-executive .exe-headline { font-style: italic; color: #333; margin-top: 4px; }
+.resume-executive .exe-contact { color: #555; font-size: 13px; margin-top: 6px; }
+.resume-executive .exe-rule { height: 2px; background: #0f2a4a; margin: 12px 0 8px; }
+.resume-executive .exe-section { margin-top: 14px; }
+.resume-executive .exe-section h2 { color: #0f2a4a; text-transform: uppercase; letter-spacing: 1.5px; font-size: 13px; border-bottom: 0.5px solid #888; padding-bottom: 3px; margin: 0 0 6px; }
+.resume-executive .exe-entry { margin-bottom: 10px; }
+.resume-executive .exe-entry-head { display: flex; justify-content: space-between; gap: 10px; }
+.resume-executive .exe-title { font-weight: 700; }
+.resume-executive .exe-org { }
+.resume-executive .exe-dates { color: #555; font-style: italic; font-size: 13px; white-space: nowrap; }
+.resume-executive .exe-loc { color: #666; font-style: italic; font-size: 13px; }
+.resume-executive .exe-section ul { margin: 4px 0 0 20px; padding: 0; }
+.resume-executive .exe-section li { margin: 2px 0; }
+.resume-executive .exe-section p { margin: 0; }
+
+/* Elegant — emerald accent bar */
+.resume-elegant { padding: 50px; }
+.resume-elegant .ele-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.resume-elegant .ele-accent { width: 4px; align-self: stretch; background: #0f766e; border-radius: 2px; }
+.resume-elegant .ele-name { font-size: 30px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.resume-elegant .ele-headline { color: #0f766e; font-weight: 600; margin-top: 2px; }
+.resume-elegant .ele-contact { color: #555; font-size: 13px; margin-top: 4px; }
+.resume-elegant .ele-section { margin-top: 14px; }
+.resume-elegant .ele-section h2 { color: #0f766e; text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; margin: 0 0 6px; }
+.resume-elegant .ele-entry { margin-bottom: 10px; }
+.resume-elegant .ele-entry-head { display: flex; justify-content: space-between; gap: 10px; }
+.resume-elegant .ele-title { font-weight: 700; }
+.resume-elegant .ele-org { font-weight: 400; color: #444; }
+.resume-elegant .ele-dates { color: #666; font-size: 13px; white-space: nowrap; }
+.resume-elegant .ele-loc { color: #666; font-size: 13px; }
+.resume-elegant .ele-section ul { margin: 4px 0 0 18px; padding: 0; }
+.resume-elegant .ele-section li { margin: 2px 0; position: relative; }
+.resume-elegant .ele-section li::marker { color: #0f766e; }
+.resume-elegant .ele-section p { margin: 0; }
+.resume-elegant .ele-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.resume-elegant .ele-chip { border: 1px solid #0f766e33; background: #0f766e0d; color: #0f766e; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+
+/* Creative — coral header band */
+.resume-creative { padding: 0; }
+.resume-creative .cre-header { background: #dc5c3a; color: #fff; padding: 36px 44px; }
+.resume-creative .cre-name { font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -0.01em; color: #fff; }
+.resume-creative .cre-headline { margin-top: 4px; opacity: 0.95; }
+.resume-creative .cre-contact { margin-top: 6px; font-size: 13px; opacity: 0.9; }
+.resume-creative .cre-body { padding: 32px 44px 44px; }
+.resume-creative .cre-section { margin-top: 14px; }
+.resume-creative .cre-section h2 { color: #dc5c3a; text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; margin: 0 0 6px; }
+.resume-creative .cre-entry { margin-bottom: 10px; }
+.resume-creative .cre-entry-head { display: flex; justify-content: space-between; gap: 10px; }
+.resume-creative .cre-title { font-weight: 700; }
+.resume-creative .cre-sub { color: #555; font-size: 13.5px; margin-bottom: 2px; }
+.resume-creative .cre-dates { color: #666; font-size: 13px; white-space: nowrap; }
+.resume-creative .cre-section ul { margin: 4px 0 0 18px; padding: 0; }
+.resume-creative .cre-section li { margin: 2px 0; }
+.resume-creative .cre-section li::marker { color: #dc5c3a; }
+.resume-creative .cre-section p { margin: 0; }
+.resume-creative .cre-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.resume-creative .cre-chip { background: #dc5c3a12; color: #a3401f; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+

@@ -43,7 +43,7 @@ function Editor() {
   const rQ = useQuery({ queryKey: ["resume", resumeId], queryFn: () => getR({ data: { resumeId } }) });
   const versionsQ = useQuery({ queryKey: ["versions", resumeId], queryFn: () => listV({ data: { resumeId } }), enabled: false });
 
-  const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", text: "Hi! Tell me what to change — e.g. *shorten my summary*, *reorder my education*, or *make it more focused on AI roles*." }]);
+  const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", text: "Hi! I can edit anything on your resume — try:\n\n- *Shorten my summary to 2 sentences*\n- *Add a bullet to my first job about leading a team of 5*\n- *Make my bullets more quantified*\n- *Reorder education so my Master's is first*\n- *Remove the third skill*" }]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -129,11 +129,15 @@ function Editor() {
           </div>
           <div className="flex items-center gap-2">
             <Select value={template} onValueChange={(v) => swapMut.mutate(v as TemplateId)}>
-              <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {TEMPLATE_IDS.map((id) => (
                   <SelectItem key={id} value={id}>
-                    {TEMPLATES[id].name} {TEMPLATES[id].tier === "pro" && <span className="text-xs text-muted-foreground ml-1">Pro</span>}
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ background: TEMPLATES[id].accent }} />
+                      {TEMPLATES[id].name}
+                      {TEMPLATES[id].tier === "pro" && <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-1">Pro</span>}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -194,18 +198,38 @@ function Editor() {
             )}
             <div ref={chatEndRef} />
           </div>
-          <form onSubmit={submit} className="border-t p-3 flex gap-2 bg-background">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask for an edit — e.g. 'move my last job to first'"
-              className="min-h-[44px] max-h-40 resize-none"
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(e as any); } }}
-              disabled={pending}
-              autoFocus
-            />
-            <Button type="submit" size="icon" disabled={pending || !input.trim()}><Send className="w-4 h-4" /></Button>
-          </form>
+          <div className="border-t bg-background">
+            <div className="px-3 pt-2 flex flex-wrap gap-1.5">
+              {[
+                "Strengthen my bullets with metrics",
+                "Shorten my summary to 2 sentences",
+                "Reorder skills by relevance",
+                "Fix typos and tighten wording",
+              ].map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => { setMessages((m) => [...m, { role: "user", text: q }]); setPending(true); editMut.mutate(q); }}
+                  className="text-xs rounded-full border px-2.5 py-1 hover:bg-[color:var(--color-accent)] disabled:opacity-50 transition-colors"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={submit} className="p-3 flex gap-2">
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask for an edit — e.g. 'add a bullet about mentoring 5 engineers'"
+                className="min-h-[44px] max-h-40 resize-none"
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(e as any); } }}
+                disabled={pending}
+                autoFocus
+              />
+              <Button type="submit" size="icon" disabled={pending || !input.trim()}><Send className="w-4 h-4" /></Button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

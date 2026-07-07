@@ -237,6 +237,87 @@ export const applyChatEdit = createServerFn({ method: "POST" })
           return { ok: true };
         },
       }),
+      addBullet: tool({
+        description: "Add a new bullet to an experience/education/project entry, optionally at a specific index (defaults to end).",
+        inputSchema: z.object({
+          section: z.enum(["experience","education","projects"]),
+          itemIndex: z.number().int().nonnegative(),
+          text: z.string(),
+          atIndex: z.number().int().nonnegative().optional(),
+        }),
+        execute: async ({ section, itemIndex, text, atIndex }) => {
+          const arr = ensureSectionArray(draft, section) as any[];
+          const item = arr[itemIndex];
+          if (!item) return { ok: false, error: "item not found" };
+          if (!Array.isArray(item.bullets)) item.bullets = [];
+          if (typeof atIndex === "number") item.bullets.splice(Math.min(atIndex, item.bullets.length), 0, text);
+          else item.bullets.push(text);
+          changeLog.push(`added bullet to ${section}[${itemIndex}]`);
+          return { ok: true };
+        },
+      }),
+      removeBullet: tool({
+        description: "Remove a bullet from an experience/education/project entry.",
+        inputSchema: z.object({
+          section: z.enum(["experience","education","projects"]),
+          itemIndex: z.number().int().nonnegative(),
+          bulletIndex: z.number().int().nonnegative(),
+        }),
+        execute: async ({ section, itemIndex, bulletIndex }) => {
+          const arr = ensureSectionArray(draft, section) as any[];
+          const item = arr[itemIndex];
+          if (!item || !Array.isArray(item.bullets) || bulletIndex >= item.bullets.length) return { ok: false, error: "bullet not found" };
+          item.bullets.splice(bulletIndex, 1);
+          changeLog.push(`removed bullet ${section}[${itemIndex}][${bulletIndex}]`);
+          return { ok: true };
+        },
+      }),
+      reorderBullets: tool({
+        description: "Move a bullet within an entry from one index to another.",
+        inputSchema: z.object({
+          section: z.enum(["experience","education","projects"]),
+          itemIndex: z.number().int().nonnegative(),
+          fromIndex: z.number().int().nonnegative(),
+          toIndex: z.number().int().nonnegative(),
+        }),
+        execute: async ({ section, itemIndex, fromIndex, toIndex }) => {
+          const arr = ensureSectionArray(draft, section) as any[];
+          const item = arr[itemIndex];
+          if (!item || !Array.isArray(item.bullets) || fromIndex >= item.bullets.length) return { ok: false, error: "out of range" };
+          const [b] = item.bullets.splice(fromIndex, 1);
+          item.bullets.splice(Math.min(toIndex, item.bullets.length), 0, b);
+          changeLog.push(`reordered bullet in ${section}[${itemIndex}]`);
+          return { ok: true };
+        },
+      }),
+      updateItemField: tool({
+        description: "Update a scalar field on an item inside a section. For experience: title/org/location/start/end/current. For education: school/degree/field/start/end. For projects: name/description.",
+        inputSchema: z.object({
+          section: z.enum(["experience","education","projects"]),
+          itemIndex: z.number().int().nonnegative(),
+          field: z.string(),
+          value: z.string(),
+        }),
+        execute: async ({ section, itemIndex, field, value }) => {
+          const arr = ensureSectionArray(draft, section) as any[];
+          const item = arr[itemIndex];
+          if (!item) return { ok: false, error: "item not found" };
+          if (field === "current") item[field] = value === "true";
+          else item[field] = value;
+          changeLog.push(`updated ${section}[${itemIndex}].${field}`);
+          return { ok: true };
+        },
+      }),
+      setSkills: tool({
+        description: "Replace the entire skills list with a new de-duplicated array. Use for bulk skill rewrites.",
+        inputSchema: z.object({ skills: z.array(z.string()) }),
+        execute: async ({ skills }) => {
+          const dedup = Array.from(new Set(skills.map((x) => x.trim()).filter(Boolean)));
+          draft.skills = dedup;
+          changeLog.push(`updated skills (${dedup.length})`);
+          return { ok: true };
+        },
+      }),
       rewriteBullet: tool({
         description: "Replace a bullet in an experience/education/project entry.",
         inputSchema: z.object({
@@ -255,6 +336,26 @@ export const applyChatEdit = createServerFn({ method: "POST" })
           return { ok: true };
         },
       }),
+      rewriteSummary: tool({
+        description: "Rewrite the professional summary. Provide the new full text (2-4 sentences).",
+        inputSchema: z.object({ text: z.string() }),
+        execute: async ({ text }) => { draft.summary = text; changeLog.push("rewrote summary"); return { ok: true }; },
+      }),
+      strengthenBullets: tool({
+        description: "Rewrite all bullets in one experience entry to be action-verb-first, quantified, and concise. Provide the new bullets.",
+        inputSchema: z.object({
+          itemIndex: z.number().int().nonnegative(),
+          bullets: z.array(z.string()),
+        }),
+        execute: async ({ itemIndex, bullets }) => {
+          const arr = draft.experience;
+          const item = arr[itemIndex];
+          if (!item) return { ok: false, error: "item not found" };
+          item.bullets = bullets;
+          changeLog.push(`strengthened experience[${itemIndex}] bullets`);
+          return { ok: true };
+        },
+      }),
       replaceResume: tool({
         description: "Replace the entire resume JSON. Only use for large rewrites the user explicitly asked for.",
         inputSchema: z.object({ resumeJson: z.string() }),
@@ -264,11 +365,12 @@ export const applyChatEdit = createServerFn({ method: "POST" })
             Object.assign(draft, next);
             changeLog.push("replaced full resume");
             return { ok: true };
-          } catch (e) {
+          } catch {
             return { ok: false, error: "invalid resume JSON" };
           }
         },
       }),
+
     } as const;
 
     let reply = "";
