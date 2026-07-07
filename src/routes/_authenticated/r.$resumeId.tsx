@@ -198,18 +198,38 @@ function Editor() {
             )}
             <div ref={chatEndRef} />
           </div>
-          <form onSubmit={submit} className="border-t p-3 flex gap-2 bg-background">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask for an edit — e.g. 'move my last job to first'"
-              className="min-h-[44px] max-h-40 resize-none"
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(e as any); } }}
-              disabled={pending}
-              autoFocus
-            />
-            <Button type="submit" size="icon" disabled={pending || !input.trim()}><Send className="w-4 h-4" /></Button>
-          </form>
+          <div className="border-t bg-background">
+            <div className="px-3 pt-2 flex flex-wrap gap-1.5">
+              {[
+                "Strengthen my bullets with metrics",
+                "Shorten my summary to 2 sentences",
+                "Reorder skills by relevance",
+                "Fix typos and tighten wording",
+              ].map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => { setMessages((m) => [...m, { role: "user", text: q }]); setPending(true); editMut.mutate(q); }}
+                  className="text-xs rounded-full border px-2.5 py-1 hover:bg-[color:var(--color-accent)] disabled:opacity-50 transition-colors"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={submit} className="p-3 flex gap-2">
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask for an edit — e.g. 'add a bullet about mentoring 5 engineers'"
+                className="min-h-[44px] max-h-40 resize-none"
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(e as any); } }}
+                disabled={pending}
+                autoFocus
+              />
+              <Button type="submit" size="icon" disabled={pending || !input.trim()}><Send className="w-4 h-4" /></Button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
