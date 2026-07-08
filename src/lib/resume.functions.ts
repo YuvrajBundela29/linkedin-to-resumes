@@ -489,16 +489,13 @@ export const createEmptyResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("max_resumes").eq("user_id", userId).single();
-    const { count } = await supabase.from("resumes").select("id", { count: "exact", head: true }).eq("user_id", userId);
-    const cap = ent?.max_resumes ?? 1;
-    if ((count ?? 0) >= cap) throw new Error(`Free plan limit reached — you can create ${cap} resume(s). Upgrade for more.`);
     const { data: row, error } = await supabase.from("resumes")
       .insert({ user_id: userId, current_json: EMPTY_RESUME as any, title: "Untitled resume" })
       .select("id").single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
+
 
 export const getResume = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
