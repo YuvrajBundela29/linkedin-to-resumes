@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedRResumeIdRouteImport } from './routes/_authenticated/r.$resumeId'
 import { Route as ApiResumeResumeIdPdfRouteImport } from './routes/api/resume.$resumeId.pdf'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
   '/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
   '/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
   '/_authenticated/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/account'
+    | '/admin'
     | '/dashboard'
     | '/r/$resumeId'
     | '/r/$resumeId/tailor'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/account'
+    | '/admin'
     | '/dashboard'
     | '/r/$resumeId'
     | '/r/$resumeId/tailor'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/account'
+    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/r/$resumeId'
     | '/_authenticated/r/$resumeId/tailor'
@@ -154,6 +166,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/account': {
@@ -203,12 +222,14 @@ const AuthenticatedRResumeIdRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedRResumeIdRoute: typeof AuthenticatedRResumeIdRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedRResumeIdRoute: AuthenticatedRResumeIdRouteWithChildren,
 }
