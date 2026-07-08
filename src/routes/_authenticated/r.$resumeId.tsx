@@ -136,19 +136,19 @@ function Editor() {
                     <span className="inline-flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full" style={{ background: TEMPLATES[id].accent }} />
                       {TEMPLATES[id].name}
-                      {TEMPLATES[id].tier === "pro" && <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-1">Pro</span>}
                     </span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
             <Sheet onOpenChange={(open) => { if (open) versionsQ.refetch(); }}>
               <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><History className="w-4 h-4" /> History</Button></SheetTrigger>
               <SheetContent>
                 <SheetHeader><SheetTitle>Version history</SheetTitle></SheetHeader>
                 <div className="mt-4 space-y-2">
                   {(versionsQ.data ?? []).length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No previous versions yet. Every edit creates one automatically (Pro plan required for rollback).</div>
+                    <div className="text-sm text-muted-foreground">No previous versions yet. Every edit creates one automatically .</div>
                   ) : versionsQ.data!.map((v) => (
                     <Card key={v.id} className="p-3 flex items-center justify-between">
                       <div>

@@ -410,13 +410,11 @@ export const switchTemplate = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("allowed_templates").eq("user_id", userId).single();
-    const allowed: string[] = ent?.allowed_templates ?? ["classic","modern"];
-    if (!allowed.includes(data.template)) throw new Error("Upgrade required for this template.");
     const { error } = await supabase.from("resumes").update({ template: data.template }).eq("id", data.resumeId).eq("user_id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 // ------------- Versions -------------
 export const listVersions = createServerFn({ method: "GET" })
@@ -437,14 +435,13 @@ export const rollbackVersion = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ resumeId: z.string().uuid(), versionId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("version_history_enabled").eq("user_id", userId).single();
-    if (!ent?.version_history_enabled) throw new Error("Version history requires Pro.");
     const { data: v, error } = await supabase.from("resume_versions").select("snapshot_json, resume_id, user_id").eq("id", data.versionId).single();
     if (error || !v || v.user_id !== userId || v.resume_id !== data.resumeId) throw new Error("Version not found");
     const { error: updErr } = await supabase.from("resumes").update({ current_json: v.snapshot_json }).eq("id", data.resumeId).eq("user_id", userId);
     if (updErr) throw new Error(updErr.message);
     return { ok: true };
   });
+
 
 // ------------- Job-description tailor -------------
 const TailorInput = z.object({
@@ -457,8 +454,7 @@ export const tailorToJobDescription = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => TailorInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("tailor_enabled").eq("user_id", userId).single();
-    if (!ent?.tailor_enabled) throw new Error("Tailoring is a Pro feature. Upgrade to unlock it.");
+
 
     const { data: row, error } = await supabase.from("resumes").select("current_json, user_id").eq("id", data.resumeId).single();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
@@ -493,16 +489,13 @@ export const createEmptyResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("max_resumes").eq("user_id", userId).single();
-    const { count } = await supabase.from("resumes").select("id", { count: "exact", head: true }).eq("user_id", userId);
-    const cap = ent?.max_resumes ?? 1;
-    if ((count ?? 0) >= cap) throw new Error(`Free plan limit reached — you can create ${cap} resume(s). Upgrade for more.`);
     const { data: row, error } = await supabase.from("resumes")
       .insert({ user_id: userId, current_json: EMPTY_RESUME as any, title: "Untitled resume" })
       .select("id").single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
+
 
 export const getResume = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -555,5 +548,57 @@ export const getAccountSummary = createServerFn({ method: "GET" })
       entitlements: ent,
       resumeCount: resumeCount ?? 0,
       usage30d: usage ?? [],
+    };
+  });
+
+// ------------- Admin -------------
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (error || !data) throw new Error("Forbidden");
+}
+
+export const getIsAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    return { isAdmin: !!data };
+  });
+
+export const getAdminOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [{ data: users }, { data: profiles }, { data: resumes }, { data: usage }, { count: totalResumes }, { count: totalUsers }] = await Promise.all([
+      supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }).then((r: any) => ({ data: r.data?.users ?? [] })),
+      supabaseAdmin.from("profiles").select("id, full_name, plan, created_at").order("created_at", { ascending: false }),
+      supabaseAdmin.from("resumes").select("id, user_id, title, template, updated_at, created_at").order("updated_at", { ascending: false }).limit(500),
+      supabaseAdmin.from("usage_events").select("user_id, kind, resume_id, created_at, meta").order("created_at", { ascending: false }).limit(500),
+      supabaseAdmin.from("resumes").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
+    ]);
+
+    const userMap = new Map<string, { email: string | null; last_sign_in_at: string | null; created_at: string }>();
+    for (const u of users as any[]) userMap.set(u.id, { email: u.email ?? null, last_sign_in_at: u.last_sign_in_at ?? null, created_at: u.created_at });
+
+    return {
+      totals: {
+        users: totalUsers ?? 0,
+        resumes: totalResumes ?? 0,
+        activeUsers24h: (users as any[]).filter((u) => u.last_sign_in_at && Date.now() - new Date(u.last_sign_in_at).getTime() < 24*3600*1000).length,
+      },
+      users: (profiles ?? []).map((p: any) => ({
+        id: p.id,
+        full_name: p.full_name,
+        plan: p.plan,
+        created_at: p.created_at,
+        email: userMap.get(p.id)?.email ?? null,
+        last_sign_in_at: userMap.get(p.id)?.last_sign_in_at ?? null,
+      })),
+      resumes: resumes ?? [],
+      usage: usage ?? [],
     };
   });

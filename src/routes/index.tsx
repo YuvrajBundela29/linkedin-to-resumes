@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, Check, FileText, Sparkles, Zap, MessageSquare, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import heroImg from "@/assets/logo.png";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,14 +39,16 @@ function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-x-clip">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[600px] bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--color-brand)_25%,transparent),transparent_60%),radial-gradient(circle_at_80%_10%,color-mix(in_oklab,var(--color-brand)_15%,transparent),transparent_55%)]" />
+
       <header className="border-b bg-background/80 backdrop-blur sticky top-0 z-40">
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <Link to="/"><Logo /></Link>
           <nav className="flex items-center gap-2">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">Features</a>
             <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">How it works</a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">Pricing</a>
+
             {signedIn ? (
               <Button asChild size="sm"><Link to="/dashboard">Dashboard</Link></Button>
             ) : (
@@ -86,11 +88,11 @@ function Landing() {
           </div>
 
           {/* Before/After preview */}
-          <div className="relative">
-            <Card className="p-4 shadow-sm">
+          <div className="relative [perspective:1400px]">
+            <Card className="p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.25),0_10px_30px_-15px_rgba(0,0,0,0.15)] border border-white/40 bg-background/70 backdrop-blur-xl [transform:rotateX(6deg)_rotateY(-8deg)] transition-transform duration-500 hover:[transform:rotateX(2deg)_rotateY(-2deg)]">
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Before → After</div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="border rounded-md p-3 bg-[color:var(--color-muted)] font-mono text-[10px] leading-snug text-muted-foreground max-h-64 overflow-hidden">
+                <div className="border rounded-md p-3 bg-[color:var(--color-muted)] font-mono text-[10px] leading-snug text-muted-foreground max-h-64 overflow-hidden shadow-inner">
                   Jane Doe<br/>
                   Software Engineer at Acme Corp<br/>
                   San Francisco Bay Area · 500+ connections<br/><br/>
@@ -103,7 +105,7 @@ function Landing() {
                   - Mentored 5 engineers<br/>
                   ...
                 </div>
-                <div className="border rounded-md overflow-hidden bg-white text-[7px] leading-snug text-black p-3 max-h-64">
+                <div className="border rounded-md overflow-hidden bg-white text-[7px] leading-snug text-black p-3 max-h-64 shadow-lg">
                   <div className="font-bold text-[11px]">Jane Doe</div>
                   <div className="text-[6px] text-neutral-500 mb-1">jane@doe.com · San Francisco, CA</div>
                   <div className="uppercase text-[6px] font-bold border-b border-black mb-1 mt-1">Experience</div>
@@ -115,10 +117,11 @@ function Landing() {
                 </div>
               </div>
             </Card>
-            <img src={heroImg} alt="" className="absolute -bottom-4 -right-4 w-16 h-16 opacity-90" width={64} height={64} />
+            <div aria-hidden className="absolute -inset-6 -z-10 rounded-3xl bg-[color:var(--color-brand)]/10 blur-3xl" />
           </div>
         </div>
       </section>
+
 
       {/* HOW IT WORKS */}
       <section id="how" className="border-t bg-[color:var(--color-surface)]">
@@ -130,7 +133,7 @@ function Landing() {
               { icon: Zap, title: "AI structures it", body: "We extract every role, degree, and skill into a clean, ATS-safe layout — no tables, no icons, standard headers." },
               { icon: MessageSquare, title: "Chat to polish", body: "Ask for edits like 'shorten my summary' or 'reorder education'. The preview updates live." },
             ].map((s, i) => (
-              <Card key={i} className="p-6">
+              <Card key={i} className="p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] bg-background/70 backdrop-blur-sm">
                 <div className="w-9 h-9 rounded-md bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4">
                   <s.icon className="w-5 h-5" />
                 </div>
@@ -167,41 +170,17 @@ function Landing() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="pricing" className="border-t bg-[color:var(--color-surface)]">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Simple pricing.</h2>
-          <div className="mt-10 grid md:grid-cols-2 gap-6 max-w-4xl">
-            <Card className="p-8">
-              <div className="text-sm font-medium">Free</div>
-              <div className="mt-2 text-4xl font-semibold">$0</div>
-              <div className="text-muted-foreground text-sm mt-1">Get started with no card.</div>
-              <ul className="mt-6 space-y-2 text-sm">
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> 1 resume</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Classic & Modern templates</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Watermark-free PDF export</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Chat-based editing</li>
-              </ul>
-              <Button className="mt-6 w-full" onClick={start}>Start free</Button>
-            </Card>
-            <Card className="p-8 border-2 border-[color:var(--color-brand)]/40">
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-medium">Pro</div>
-                <span className="text-xs rounded-full px-2 py-0.5 bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)]">Coming soon</span>
-              </div>
-              <div className="mt-2 text-4xl font-semibold">$9<span className="text-base text-muted-foreground font-normal">/mo</span></div>
-              <div className="text-muted-foreground text-sm mt-1">For serious job seekers.</div>
-              <ul className="mt-6 space-y-2 text-sm">
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Unlimited resumes</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> All 4 templates</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Version history & rollback</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Tailor to a job description</li>
-              </ul>
-              <Button variant="outline" className="mt-6 w-full" onClick={start}>Get on the list</Button>
-            </Card>
-          </div>
+      {/* CTA */}
+      <section className="border-t bg-[color:var(--color-surface)]">
+        <div className="mx-auto max-w-4xl px-6 py-20 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Free. Unlimited. Yours.</h2>
+          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
+          <Button size="lg" onClick={start} className="mt-8 gap-2">
+            Get started <ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
       </section>
+
 
       <footer className="border-t">
         <div className="mx-auto max-w-6xl px-6 py-8 flex items-center justify-between text-sm text-muted-foreground">
