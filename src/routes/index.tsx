@@ -167,41 +167,17 @@ function Landing() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="pricing" className="border-t bg-[color:var(--color-surface)]">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Simple pricing.</h2>
-          <div className="mt-10 grid md:grid-cols-2 gap-6 max-w-4xl">
-            <Card className="p-8">
-              <div className="text-sm font-medium">Free</div>
-              <div className="mt-2 text-4xl font-semibold">$0</div>
-              <div className="text-muted-foreground text-sm mt-1">Get started with no card.</div>
-              <ul className="mt-6 space-y-2 text-sm">
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> 1 resume</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Classic & Modern templates</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Watermark-free PDF export</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Chat-based editing</li>
-              </ul>
-              <Button className="mt-6 w-full" onClick={start}>Start free</Button>
-            </Card>
-            <Card className="p-8 border-2 border-[color:var(--color-brand)]/40">
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-medium">Pro</div>
-                <span className="text-xs rounded-full px-2 py-0.5 bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)]">Coming soon</span>
-              </div>
-              <div className="mt-2 text-4xl font-semibold">$9<span className="text-base text-muted-foreground font-normal">/mo</span></div>
-              <div className="text-muted-foreground text-sm mt-1">For serious job seekers.</div>
-              <ul className="mt-6 space-y-2 text-sm">
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Unlimited resumes</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> All 4 templates</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Version history & rollback</li>
-                <li className="flex gap-2"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Tailor to a job description</li>
-              </ul>
-              <Button variant="outline" className="mt-6 w-full" onClick={start}>Get on the list</Button>
-            </Card>
-          </div>
+      {/* CTA */}
+      <section className="border-t bg-[color:var(--color-surface)]">
+        <div className="mx-auto max-w-4xl px-6 py-20 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Free. Unlimited. Yours.</h2>
+          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
+          <Button size="lg" onClick={start} className="mt-8 gap-2">
+            Get started <ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
       </section>
+
 
       <footer className="border-t">
         <div className="mx-auto max-w-6xl px-6 py-8 flex items-center justify-between text-sm text-muted-foreground">
