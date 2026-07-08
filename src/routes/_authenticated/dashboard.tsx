@@ -79,11 +79,17 @@ function Dashboard() {
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <Link to="/"><Logo /></Link>
           <div className="flex items-center gap-2">
+            {adminQ.data?.isAdmin && (
+              <Button asChild variant="ghost" size="sm" className="text-[color:var(--color-brand)]">
+                <Link to="/admin"><Shield className="w-4 h-4 mr-1" /> Admin</Link>
+              </Button>
+            )}
             <Button asChild variant="ghost" size="sm"><Link to="/account"><User className="w-4 h-4 mr-1" /> Account</Link></Button>
             <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="w-4 h-4 mr-1" /> Sign out</Button>
           </div>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex items-end justify-between mb-6">
