@@ -48,20 +48,20 @@ function AccountPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-muted-foreground">Current plan</div>
-              <div className="text-2xl font-semibold mt-1 capitalize flex items-center gap-2">
-                {q.data?.profile?.plan ?? "free"} {q.data?.profile?.plan === "pro" && <Crown className="w-5 h-5 text-[color:var(--color-brand)]" />}
+              <div className="text-sm text-muted-foreground">Access</div>
+              <div className="text-2xl font-semibold mt-1 flex items-center gap-2">
+                Unlimited <Crown className="w-5 h-5 text-[color:var(--color-brand)]" />
               </div>
             </div>
-            <Button onClick={() => toast.info("Pro is coming soon — we'll email you.")}>Upgrade to Pro</Button>
           </div>
           <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
-            <div><div className="text-muted-foreground">Resumes used</div><div className="font-medium">{q.data?.resumeCount ?? 0} / {q.data?.entitlements?.max_resumes ?? 1}</div></div>
-            <div><div className="text-muted-foreground">Templates available</div><div className="font-medium capitalize">{(q.data?.entitlements?.allowed_templates ?? []).join(", ")}</div></div>
-            <div><div className="text-muted-foreground">Version history</div><div className="font-medium">{q.data?.entitlements?.version_history_enabled ? "On" : "Off (Pro)"}</div></div>
-            <div><div className="text-muted-foreground">JD tailoring</div><div className="font-medium">{q.data?.entitlements?.tailor_enabled ? "On" : "Off (Pro)"}</div></div>
+            <div><div className="text-muted-foreground">Resumes created</div><div className="font-medium">{q.data?.resumeCount ?? 0}</div></div>
+            <div><div className="text-muted-foreground">Templates</div><div className="font-medium">All 7 unlocked</div></div>
+            <div><div className="text-muted-foreground">Version history</div><div className="font-medium">On</div></div>
+            <div><div className="text-muted-foreground">JD tailoring</div><div className="font-medium">On</div></div>
           </div>
         </Card>
+
 
         <Card className="p-6">
           <div className="text-sm text-muted-foreground">Usage in the last 30 days</div>
