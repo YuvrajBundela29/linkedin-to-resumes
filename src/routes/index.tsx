@@ -88,11 +88,11 @@ function Landing() {
           </div>
 
           {/* Before/After preview */}
-          <div className="relative">
-            <Card className="p-4 shadow-sm">
+          <div className="relative [perspective:1400px]">
+            <Card className="p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.25),0_10px_30px_-15px_rgba(0,0,0,0.15)] border border-white/40 bg-background/70 backdrop-blur-xl [transform:rotateX(6deg)_rotateY(-8deg)] transition-transform duration-500 hover:[transform:rotateX(2deg)_rotateY(-2deg)]">
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Before → After</div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="border rounded-md p-3 bg-[color:var(--color-muted)] font-mono text-[10px] leading-snug text-muted-foreground max-h-64 overflow-hidden">
+                <div className="border rounded-md p-3 bg-[color:var(--color-muted)] font-mono text-[10px] leading-snug text-muted-foreground max-h-64 overflow-hidden shadow-inner">
                   Jane Doe<br/>
                   Software Engineer at Acme Corp<br/>
                   San Francisco Bay Area · 500+ connections<br/><br/>
@@ -105,7 +105,7 @@ function Landing() {
                   - Mentored 5 engineers<br/>
                   ...
                 </div>
-                <div className="border rounded-md overflow-hidden bg-white text-[7px] leading-snug text-black p-3 max-h-64">
+                <div className="border rounded-md overflow-hidden bg-white text-[7px] leading-snug text-black p-3 max-h-64 shadow-lg">
                   <div className="font-bold text-[11px]">Jane Doe</div>
                   <div className="text-[6px] text-neutral-500 mb-1">jane@doe.com · San Francisco, CA</div>
                   <div className="uppercase text-[6px] font-bold border-b border-black mb-1 mt-1">Experience</div>
@@ -117,10 +117,11 @@ function Landing() {
                 </div>
               </div>
             </Card>
-            <img src={heroImg} alt="" className="absolute -bottom-4 -right-4 w-16 h-16 opacity-90" width={64} height={64} />
+            <div aria-hidden className="absolute -inset-6 -z-10 rounded-3xl bg-[color:var(--color-brand)]/10 blur-3xl" />
           </div>
         </div>
       </section>
+
 
       {/* HOW IT WORKS */}
       <section id="how" className="border-t bg-[color:var(--color-surface)]">
