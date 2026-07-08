@@ -34,6 +34,9 @@ function Dashboard() {
   const [uploading, setUploading] = useState(false);
 
   const resumesQ = useQuery({ queryKey: ["resumes"], queryFn: () => list() });
+  const adminFn = useServerFn(getIsAdmin);
+  const adminQ = useQuery({ queryKey: ["isAdmin"], queryFn: () => adminFn() });
+
 
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { resumeId: id } }),
