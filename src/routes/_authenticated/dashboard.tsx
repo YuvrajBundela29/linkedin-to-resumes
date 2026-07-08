@@ -11,10 +11,12 @@ import {
   createEmptyResume,
   extractResumeFromPdf,
   deleteResume,
+  getIsAdmin,
 } from "@/lib/resume.functions";
 import { toast } from "sonner";
-import { FileText, Loader2, Plus, Trash2, Upload, LogOut, User } from "lucide-react";
+import { FileText, Loader2, Trash2, Upload, LogOut, User, Shield } from "lucide-react";
 import { TEMPLATES } from "@/templates";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Your resumes — ResumeForge AI" }, { name: "robots", content: "noindex" }] }),
