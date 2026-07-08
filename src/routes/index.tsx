@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, Check, FileText, Sparkles, Zap, MessageSquare, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import heroImg from "@/assets/logo.png";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
