@@ -133,7 +133,7 @@ function Landing() {
               { icon: Zap, title: "AI structures it", body: "We extract every role, degree, and skill into a clean, ATS-safe layout — no tables, no icons, standard headers." },
               { icon: MessageSquare, title: "Chat to polish", body: "Ask for edits like 'shorten my summary' or 'reorder education'. The preview updates live." },
             ].map((s, i) => (
-              <Card key={i} className="p-6">
+              <Card key={i} className="p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] bg-background/70 backdrop-blur-sm">
                 <div className="w-9 h-9 rounded-md bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4">
                   <s.icon className="w-5 h-5" />
                 </div>
