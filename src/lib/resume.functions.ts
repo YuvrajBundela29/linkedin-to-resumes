@@ -454,8 +454,7 @@ export const tailorToJobDescription = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => TailorInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("tailor_enabled").eq("user_id", userId).single();
-    if (!ent?.tailor_enabled) throw new Error("Tailoring is a Pro feature. Upgrade to unlock it.");
+
 
     const { data: row, error } = await supabase.from("resumes").select("current_json, user_id").eq("id", data.resumeId).single();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
