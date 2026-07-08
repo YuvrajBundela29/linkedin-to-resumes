@@ -435,14 +435,13 @@ export const rollbackVersion = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ resumeId: z.string().uuid(), versionId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("version_history_enabled").eq("user_id", userId).single();
-    if (!ent?.version_history_enabled) throw new Error("Version history requires Pro.");
     const { data: v, error } = await supabase.from("resume_versions").select("snapshot_json, resume_id, user_id").eq("id", data.versionId).single();
     if (error || !v || v.user_id !== userId || v.resume_id !== data.resumeId) throw new Error("Version not found");
     const { error: updErr } = await supabase.from("resumes").update({ current_json: v.snapshot_json }).eq("id", data.resumeId).eq("user_id", userId);
     if (updErr) throw new Error(updErr.message);
     return { ok: true };
   });
+
 
 // ------------- Job-description tailor -------------
 const TailorInput = z.object({
