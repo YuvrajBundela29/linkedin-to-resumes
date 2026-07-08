@@ -148,7 +148,7 @@ function Editor() {
                 <SheetHeader><SheetTitle>Version history</SheetTitle></SheetHeader>
                 <div className="mt-4 space-y-2">
                   {(versionsQ.data ?? []).length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No previous versions yet. Every edit creates one automatically (Pro plan required for rollback).</div>
+                    <div className="text-sm text-muted-foreground">No previous versions yet. Every edit creates one automatically .</div>
                   ) : versionsQ.data!.map((v) => (
                     <Card key={v.id} className="p-3 flex items-center justify-between">
                       <div>
