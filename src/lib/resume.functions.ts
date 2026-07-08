@@ -410,13 +410,11 @@ export const switchTemplate = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase.from("entitlements").select("allowed_templates").eq("user_id", userId).single();
-    const allowed: string[] = ent?.allowed_templates ?? ["classic","modern"];
-    if (!allowed.includes(data.template)) throw new Error("Upgrade required for this template.");
     const { error } = await supabase.from("resumes").update({ template: data.template }).eq("id", data.resumeId).eq("user_id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 // ------------- Versions -------------
 export const listVersions = createServerFn({ method: "GET" })
