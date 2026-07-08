@@ -550,3 +550,55 @@ export const getAccountSummary = createServerFn({ method: "GET" })
       usage30d: usage ?? [],
     };
   });
+
+// ------------- Admin -------------
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (error || !data) throw new Error("Forbidden");
+}
+
+export const getIsAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    return { isAdmin: !!data };
+  });
+
+export const getAdminOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [{ data: users }, { data: profiles }, { data: resumes }, { data: usage }, { count: totalResumes }, { count: totalUsers }] = await Promise.all([
+      supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }).then((r: any) => ({ data: r.data?.users ?? [] })),
+      supabaseAdmin.from("profiles").select("id, full_name, plan, created_at").order("created_at", { ascending: false }),
+      supabaseAdmin.from("resumes").select("id, user_id, title, template, updated_at, created_at").order("updated_at", { ascending: false }).limit(500),
+      supabaseAdmin.from("usage_events").select("user_id, kind, resume_id, created_at, meta").order("created_at", { ascending: false }).limit(500),
+      supabaseAdmin.from("resumes").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
+    ]);
+
+    const userMap = new Map<string, { email: string | null; last_sign_in_at: string | null; created_at: string }>();
+    for (const u of users as any[]) userMap.set(u.id, { email: u.email ?? null, last_sign_in_at: u.last_sign_in_at ?? null, created_at: u.created_at });
+
+    return {
+      totals: {
+        users: totalUsers ?? 0,
+        resumes: totalResumes ?? 0,
+        activeUsers24h: (users as any[]).filter((u) => u.last_sign_in_at && Date.now() - new Date(u.last_sign_in_at).getTime() < 24*3600*1000).length,
+      },
+      users: (profiles ?? []).map((p: any) => ({
+        id: p.id,
+        full_name: p.full_name,
+        plan: p.plan,
+        created_at: p.created_at,
+        email: userMap.get(p.id)?.email ?? null,
+        last_sign_in_at: userMap.get(p.id)?.last_sign_in_at ?? null,
+      })),
+      resumes: resumes ?? [],
+      usage: usage ?? [],
+    };
+  });
