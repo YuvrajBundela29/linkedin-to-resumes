@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  getResume, applyChatEdit, switchTemplate, listVersions, rollbackVersion,
+  getResume, applyChatEdit, switchTemplate, listVersions, rollbackVersion, listChatMessages,
 } from "@/lib/resume.functions";
 import { TEMPLATES } from "@/templates";
 import { TEMPLATE_IDS, type TemplateId } from "@/lib/resume-schema";
@@ -39,14 +39,24 @@ function Editor() {
   const swap = useServerFn(switchTemplate);
   const listV = useServerFn(listVersions);
   const rollbackV = useServerFn(rollbackVersion);
+  const listChat = useServerFn(listChatMessages);
 
   const rQ = useQuery({ queryKey: ["resume", resumeId], queryFn: () => getR({ data: { resumeId } }) });
   const versionsQ = useQuery({ queryKey: ["versions", resumeId], queryFn: () => listV({ data: { resumeId } }), enabled: false });
+  const historyQ = useQuery({ queryKey: ["chat", resumeId], queryFn: () => listChat({ data: { resumeId } }) });
 
-  const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", text: "Hi! I can edit anything on your resume — try:\n\n- *Shorten my summary to 2 sentences*\n- *Add a bullet to my first job about leading a team of 5*\n- *Make my bullets more quantified*\n- *Reorder education so my Master's is first*\n- *Remove the third skill*" }]);
+  const WELCOME: Msg = { role: "assistant", text: "Hi! I can edit **content and style** on your resume — try:\n\n- *Make my resume look more professional*\n- *Switch to the executive template*\n- *Add a bullet to my first job about leading a team of 5*\n- *Make my bullets more quantified*\n- *Reorder education so my Master's is first*" };
+  const [messages, setMessages] = useState<Msg[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Hydrate from persisted history
+  useEffect(() => {
+    if (historyQ.data && historyQ.data.length > 0) {
+      setMessages([WELCOME, ...historyQ.data.map((m: any) => ({ role: m.role as "user"|"assistant", text: m.content }))]);
+    }
+  }, [historyQ.data]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,8 +65,9 @@ function Editor() {
   const editMut = useMutation({
     mutationFn: (message: string) => edit({ data: { resumeId, message } }),
     onSuccess: (data) => {
-      qc.setQueryData(["resume", resumeId], (old: any) => old ? { ...old, resume: data.resume } : old);
+      qc.setQueryData(["resume", resumeId], (old: any) => old ? { ...old, resume: data.resume, template: data.template ?? old.template } : old);
       qc.invalidateQueries({ queryKey: ["versions", resumeId] });
+      qc.invalidateQueries({ queryKey: ["chat", resumeId] });
       setMessages((m) => [...m, { role: "assistant", text: data.reply || "Done." }]);
     },
     onError: (e: Error) => {

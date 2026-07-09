@@ -6,9 +6,13 @@ import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getAdminOverview } from "@/lib/resume.functions";
-import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResumePreview } from "@/components/ResumePreview";
+import { getAdminOverview, getResumeConversation } from "@/lib/resume.functions";
+import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { TEMPLATES } from "@/templates";
+import type { TemplateId } from "@/lib/resume-schema";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Super Admin — ResumeForge AI" }, { name: "robots", content: "noindex" }] }),
@@ -38,6 +42,13 @@ function AdminPage() {
   const q = useQuery({ queryKey: ["adminOverview"], queryFn: () => fn(), retry: false });
   const [tab, setTab] = useState<"users" | "resumes" | "activity">("users");
   const [search, setSearch] = useState("");
+  const [viewResumeId, setViewResumeId] = useState<string | null>(null);
+  const getConv = useServerFn(getResumeConversation);
+  const convQ = useQuery({
+    queryKey: ["conversation", viewResumeId],
+    queryFn: () => getConv({ data: { resumeId: viewResumeId! } }),
+    enabled: !!viewResumeId,
+  });
 
   if (q.isLoading) return <div className="min-h-screen grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>;
   if (q.isError) {
@@ -128,13 +139,13 @@ function AdminPage() {
 
           {tab === "resumes" && (
             <div className="divide-y">
-              <div className="grid grid-cols-[1fr_1fr_140px_180px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground bg-[color:var(--color-surface)]/60">
-                <div>Resume</div><div>Owner</div><div>Template</div><div>Updated</div>
+              <div className="grid grid-cols-[1fr_1fr_140px_160px_110px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground bg-[color:var(--color-surface)]/60">
+                <div>Resume</div><div>Owner</div><div>Template</div><div>Updated</div><div className="text-right">View</div>
               </div>
               {filteredResumes.map((r: any) => {
                 const u = userMap.get(r.user_id);
                 return (
-                  <div key={r.id} className="grid grid-cols-[1fr_1fr_140px_180px] gap-4 px-6 py-3 items-center hover:bg-[color:var(--color-accent)]/40 transition-colors">
+                  <div key={r.id} className="grid grid-cols-[1fr_1fr_140px_160px_110px] gap-4 px-6 py-3 items-center hover:bg-[color:var(--color-accent)]/40 transition-colors">
                     <div className="font-medium truncate">{r.title}</div>
                     <div className="text-sm text-muted-foreground truncate">{u?.email ?? r.user_id.slice(0, 8)}</div>
                     <div className="text-xs flex items-center gap-1.5">
@@ -142,6 +153,11 @@ function AdminPage() {
                       {(TEMPLATES as any)[r.template]?.name ?? r.template}
                     </div>
                     <div className="text-xs text-muted-foreground">{new Date(r.updated_at).toLocaleString()}</div>
+                    <div className="text-right">
+                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setViewResumeId(r.id)}>
+                        <Eye className="w-3.5 h-3.5" /> Open
+                      </Button>
+                    </div>
                   </div>
                 );
               })}

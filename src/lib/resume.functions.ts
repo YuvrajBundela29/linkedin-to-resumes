@@ -109,19 +109,32 @@ export const extractResumeFromPdf = createServerFn({ method: "POST" })
 
 // ------------- Chat edit (tool-calling) -------------
 
-const EDIT_SYSTEM = `You are an assistant that edits a user's resume via structured tool calls.
+const EDIT_SYSTEM = `You are the resume editor for ResumeForge AI. You can edit BOTH content AND visual style via tool calls.
 
 You receive:
 - CURRENT_RESUME: the full JSON.
+- CURRENT_TEMPLATE: the active template id.
 - USER_REQUEST: a natural-language edit request.
 
+Available styles (use setTemplate to switch):
+- classic — neutral black serif-less, safest ATS default.
+- modern — larger name, airy hierarchy, minimal.
+- compact — dense one-page, small type.
+- technical — engineer-focused, mono skills row.
+- executive — serif, centered navy header, formal / senior roles.
+- elegant — emerald accent bar, refined typography.
+- creative — bold coral header band, design/marketing roles.
+
 Rules:
-- Use ONLY the provided tools; do not fabricate content the user didn't ask for.
-- Reasonable inference is fine (e.g., "move bachelors above masters" → reorder education).
+- Use ONLY the provided tools.
+- When the user asks for visual changes ("make it darker", "more colorful", "navy theme", "professional look", "black theme", "change the style", "make it pop") pick the closest template and call setTemplate. Never say you cannot change styling — you can.
+- Interpret color requests as template intent: black/monochrome → classic or compact; navy/formal → executive; green/emerald → elegant; coral/red/bold → creative; minimal → modern; engineer → technical.
+- If a request would hurt ATS parsing (dark backgrounds, columns, graphics), pick the closest ATS-safe template and briefly note the tradeoff in one sentence.
+- Reasonable inference is fine ("move bachelors above masters" → reorder education).
 - Section keys: "experience", "education", "skills", "certifications", "projects".
-- After edits, briefly confirm what you changed (1–2 sentences, no lists).
-- If the request is unclear, ask a short clarifying question instead of calling tools.
-- Bullets should be concise, one line each, action-verb first.`;
+- After edits, confirm what you changed in 1–2 sentences. No bullet lists in the confirmation.
+- If a request is genuinely ambiguous, ask ONE short clarifying question instead of calling tools.
+- Bullets are one line each, action-verb first, quantified when possible.`;
 
 const ChatEditInput = z.object({
   resumeId: z.string().uuid(),
@@ -147,6 +160,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
 
     const prevJson = ResumeSchema.parse(row.current_json ?? EMPTY_RESUME);
+    const prevTemplate = (row.template ?? "classic") as TemplateId;
     // Snapshot previous state (trigger keeps last 5)
     await supabase.from("resume_versions").insert({
       resume_id: data.resumeId,
@@ -155,13 +169,28 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       label: "Before edit",
     });
 
+    // Persist the user's message immediately so admins see the full trail.
+    await supabase.from("chat_messages").insert({
+      resume_id: data.resumeId, user_id: userId, role: "user", content: data.message,
+    });
+
     // Working copy the tools mutate
     const draft: Resume = JSON.parse(JSON.stringify(prevJson));
+    let nextTemplate: TemplateId = prevTemplate;
     const changeLog: string[] = [];
 
     const gateway = createLovableAiGateway();
 
     const tools = {
+      setTemplate: tool({
+        description: "Switch the resume's visual template. Use this whenever the user asks for a style/theme/color/vibe change. One of: classic, modern, compact, technical, executive, elegant, creative.",
+        inputSchema: z.object({ template: z.enum(TEMPLATE_IDS) }),
+        execute: async ({ template }) => {
+          nextTemplate = template;
+          changeLog.push(`switched template to ${template}`);
+          return { ok: true };
+        },
+      }),
       setField: tool({
         description: "Set a top-level string field on the resume (name, headline, summary) or a contact.* field.",
         inputSchema: z.object({
@@ -373,12 +402,18 @@ export const applyChatEdit = createServerFn({ method: "POST" })
 
     } as const;
 
+    // Load recent conversation history so the AI has context across turns.
+    const { data: history } = await supabase.from("chat_messages")
+      .select("role, content").eq("resume_id", data.resumeId)
+      .order("created_at", { ascending: true }).limit(30);
+    const historyText = (history ?? []).slice(-20).map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
+
     let reply = "";
     try {
       const result = await generateText({
         model: gateway(DEFAULT_MODEL),
         system: EDIT_SYSTEM,
-        prompt: `CURRENT_RESUME:\n${JSON.stringify(prevJson)}\n\nUSER_REQUEST:\n${data.message}`,
+        prompt: `CURRENT_RESUME:\n${JSON.stringify(prevJson)}\n\nCURRENT_TEMPLATE: ${prevTemplate}\n\nCONVERSATION_HISTORY:\n${historyText}\n\nUSER_REQUEST:\n${data.message}`,
         tools,
         stopWhen: stepCountIs(50),
       });
@@ -390,16 +425,23 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       throw new Error(`Edit failed: ${msg}`);
     }
 
-    // Validate and save
+    // Validate and save resume content + (if changed) template.
     const nextJson = ResumeSchema.parse(draft);
+    const updatePayload: any = { current_json: nextJson };
+    if (nextTemplate !== prevTemplate) updatePayload.template = nextTemplate;
     const { error: updErr } = await supabase.from("resumes")
-      .update({ current_json: nextJson })
-      .eq("id", data.resumeId);
+      .update(updatePayload).eq("id", data.resumeId);
     if (updErr) throw new Error(updErr.message);
+
+    // Persist assistant reply.
+    await supabase.from("chat_messages").insert({
+      resume_id: data.resumeId, user_id: userId, role: "assistant", content: reply,
+      meta: { changes: changeLog, template: nextTemplate },
+    });
 
     await logUsage(supabase, userId, "chat_edit", data.resumeId, { changes: changeLog });
 
-    return { resume: nextJson, reply, changes: changeLog };
+    return { resume: nextJson, reply, changes: changeLog, template: nextTemplate };
   });
 
 // ------------- Template switch -------------
@@ -600,5 +642,47 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       })),
       resumes: resumes ?? [],
       usage: usage ?? [],
+    };
+  });
+
+// ------------- Chat history (owner) -------------
+export const listChatMessages = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ resumeId: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: rows, error } = await supabase.from("chat_messages")
+      .select("id, role, content, created_at")
+      .eq("resume_id", data.resumeId).eq("user_id", userId)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+// ------------- Admin: full conversation + resume snapshot -------------
+export const getResumeConversation = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ resumeId: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: resume }, { data: messages }] = await Promise.all([
+      supabaseAdmin.from("resumes").select("id, user_id, title, template, current_json, created_at, updated_at").eq("id", data.resumeId).single(),
+      supabaseAdmin.from("chat_messages").select("id, role, content, created_at, meta").eq("resume_id", data.resumeId).order("created_at", { ascending: true }),
+    ]);
+    if (!resume) throw new Error("Resume not found");
+    let email: string | null = null;
+    try {
+      const { data: u } = await supabaseAdmin.auth.admin.getUserById(resume.user_id);
+      email = u?.user?.email ?? null;
+    } catch {}
+    return {
+      resume: {
+        ...resume,
+        resume: ResumeSchema.parse(resume.current_json ?? EMPTY_RESUME),
+      },
+      email,
+      messages: messages ?? [],
     };
   });
