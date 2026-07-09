@@ -40,9 +40,10 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-clip">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[600px] bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--color-brand)_25%,transparent),transparent_60%),radial-gradient(circle_at_80%_10%,color-mix(in_oklab,var(--color-brand)_15%,transparent),transparent_55%)]" />
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 grid-bg opacity-40" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[800px] bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--color-brand)_35%,transparent),transparent_60%),radial-gradient(circle_at_80%_10%,color-mix(in_oklab,var(--color-brand-2)_28%,transparent),transparent_55%)]" />
 
-      <header className="border-b bg-background/80 backdrop-blur sticky top-0 z-40">
+      <header className="border-b border-white/10 glass sticky top-0 z-40">
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
           <Link to="/"><Logo /></Link>
           <nav className="flex items-center gap-2">
@@ -65,11 +66,11 @@ function Landing() {
       <section className="mx-auto max-w-6xl px-6 pt-20 pb-16 md:pt-28 md:pb-24">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs text-muted-foreground bg-[color:var(--color-surface)]">
-              <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> Powered by Lovable AI
+            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground">
+              <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> Powered by Lovable AI · <span className="text-[color:var(--color-brand)]">Neural pipeline online</span>
             </div>
             <h1 className="mt-4 text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
-              Turn your LinkedIn into an <span className="text-[color:var(--color-brand)]">interview-ready</span> resume in 60 seconds.
+              Turn your LinkedIn into an <span className="text-gradient">interview-ready</span> resume in 60 seconds.
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-xl">
               Upload your LinkedIn "Save to PDF" export. Our AI structures it into an ATS-safe resume you can polish by chatting in plain English.
