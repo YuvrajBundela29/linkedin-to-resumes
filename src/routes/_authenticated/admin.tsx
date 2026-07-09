@@ -186,6 +186,51 @@ function AdminPage() {
           )}
         </Card>
       </main>
+
+      <Dialog open={!!viewResumeId} onOpenChange={(o) => !o && setViewResumeId(null)}>
+        <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-background/95 backdrop-blur-xl border-white/10">
+          <DialogHeader className="px-6 py-4 border-b border-white/10 shrink-0">
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-[color:var(--color-brand)]" />
+              {convQ.data?.resume?.title ?? "Conversation & resume"}
+              {convQ.data?.email && <span className="text-xs font-normal text-muted-foreground ml-2">· {convQ.data.email}</span>}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_420px] h-[calc(90vh-65px)]">
+            <div className="min-h-0 overflow-auto p-4">
+              {convQ.isLoading ? (
+                <div className="h-full grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>
+              ) : convQ.data ? (
+                <ResumePreview resume={convQ.data.resume.resume} template={convQ.data.resume.template as TemplateId} />
+              ) : null}
+            </div>
+            <div className="border-l border-white/10 flex flex-col min-h-0 bg-[color:var(--color-surface)]/40">
+              <div className="px-4 py-3 border-b border-white/10 text-xs uppercase tracking-wider text-muted-foreground shrink-0">
+                Conversation ({convQ.data?.messages?.length ?? 0})
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {convQ.data?.messages?.length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-8">No AI editor messages yet for this resume.</div>
+                )}
+                {convQ.data?.messages?.map((m: any) => (
+                  <div key={m.id} className={m.role === "user" ? "flex justify-end" : ""}>
+                    {m.role === "user" ? (
+                      <div className="rounded-2xl bg-[color:var(--color-brand)]/15 border border-[color:var(--color-brand)]/30 text-foreground px-3 py-2 max-w-[90%] text-sm">
+                        {m.content}
+                      </div>
+                    ) : (
+                      <div className="max-w-[95%] text-sm prose prose-sm prose-invert">
+                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">{new Date(m.created_at).toLocaleString()}</div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
