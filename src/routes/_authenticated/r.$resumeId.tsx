@@ -120,8 +120,13 @@ function Editor() {
       const a = document.createElement("a");
       a.href = url;
       a.download = `${rQ.data?.title ?? "resume"}.pdf`;
+      a.rel = "noopener";
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      // Delay revoke so the browser can start the download first.
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast.success("PDF downloaded");
     } catch (e: any) {
       toast.error(e.message ?? "PDF failed");
     }
