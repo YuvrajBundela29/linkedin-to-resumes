@@ -197,6 +197,51 @@ function Editor() {
                 </div>
               </SheetContent>
             </Sheet>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1"><HelpCircle className="w-4 h-4" /> Guide</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-[color:var(--color-brand)]" /> How to use the AI editor</DialogTitle>
+                  <DialogDescription>Everything you can do — in one place.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-5 text-sm mt-2">
+                  <section>
+                    <h3 className="font-semibold mb-1.5">1. Edit content by chatting</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                      <li>"Add a bullet to my first job about leading a team of 5"</li>
+                      <li>"Rewrite my summary to be more concise and quantified"</li>
+                      <li>"Reorder education so my Master's is first"</li>
+                      <li>"Remove the last project"</li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">2. Change the look</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                      <li>Pick a template from the dropdown, or say <em>"switch to the executive template"</em>.</li>
+                      <li>Try: Classic · Modern · Compact · Technical · Executive · Elegant · Creative.</li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">3. Tailor to a job</h3>
+                    <p className="text-muted-foreground">Click <b>Tailor</b>, paste a job description, and the AI aligns your resume — keeping it ATS-safe.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">4. Undo any change</h3>
+                    <p className="text-muted-foreground">Every edit auto-snapshots. Click <b>History</b> to restore any earlier version.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">5. Download</h3>
+                    <p className="text-muted-foreground">Hit <b>Download PDF</b> for a text-selectable, ATS-safe file — never rasterized.</p>
+                  </section>
+                  <section className="rounded-md border p-3 bg-[color:var(--color-muted)]">
+                    <div className="font-semibold mb-1">Pro tip</div>
+                    <p className="text-muted-foreground">Ask for metrics ("quantify my bullets") — recruiters and ATS both reward numbers.</p>
+                  </section>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button variant="outline" size="sm" asChild><Link to="/r/$resumeId/tailor" params={{ resumeId }}><Target className="w-4 h-4 mr-1" /> Tailor</Link></Button>
             <Button size="sm" onClick={downloadPdf} className="gap-1"><Download className="w-4 h-4" /> Download PDF</Button>
           </div>
