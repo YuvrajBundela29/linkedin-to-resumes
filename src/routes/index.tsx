@@ -49,6 +49,7 @@ function Landing() {
           <nav className="flex items-center gap-2">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">Features</a>
             <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">How it works</a>
+            <a href="#about" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">About</a>
 
             {signedIn ? (
               <Button asChild size="sm"><Link to="/dashboard">Dashboard</Link></Button>
