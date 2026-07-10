@@ -49,6 +49,7 @@ function Landing() {
           <nav className="flex items-center gap-2">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">Features</a>
             <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">How it works</a>
+            <a href="#about" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">About</a>
 
             {signedIn ? (
               <Button asChild size="sm"><Link to="/dashboard">Dashboard</Link></Button>
@@ -171,6 +172,72 @@ function Landing() {
         </div>
       </section>
 
+      {/* ABOUT / STORY */}
+      <section id="about" className="border-t">
+        <div className="mx-auto max-w-4xl px-6 py-24">
+          <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-4">
+            <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> The story behind ResumeForge AI
+          </div>
+          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
+            Hi, I'm <span className="text-gradient">Yuvraj Singh Bundela</span>.
+          </h2>
+          <p className="mt-3 text-muted-foreground text-lg">
+            A dual-track student sitting at the intersection of <b>Cybersecurity</b> and <b>AI</b> — and the builder behind this platform.
+          </p>
+
+          <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-8 items-start">
+            <Card className="p-6 bg-background/70 backdrop-blur-sm">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Quick facts</div>
+              <ul className="space-y-2 text-sm">
+                <li><b>@ IIT Guwahati</b> — BS in AI & Data Science</li>
+                <li><b>@ AKTU / SR Group</b> — B.Tech in Cybersecurity</li>
+                <li>Founder — <b>ConvertXpert</b>, <b>Mini Mind</b>, <b>Auto Prompt</b></li>
+                <li>Python · C++ · SQL · Vertex AI · GCP</li>
+                <li>Ethical hacking · ML · Data analysis</li>
+                <li>Competitive chess player</li>
+                <li>Based in Jhansi, Uttar Pradesh 🇮🇳</li>
+              </ul>
+            </Card>
+
+            <div className="space-y-5 text-[15px] leading-relaxed">
+              <div>
+                <h3 className="font-semibold text-lg mb-1.5">The problem I kept hitting</h3>
+                <p className="text-muted-foreground">
+                  Every time I applied for internships, I fought the same battle: my LinkedIn was rich, my experience was real —
+                  but turning it into a clean, <b>ATS-safe</b> resume took hours. Templates were paywalled. AI tools rewrote things I never said.
+                  And nothing let me just <em>talk</em> to my resume like a normal human.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-1.5">What I did about it</h3>
+                <p className="text-muted-foreground">
+                  I built ResumeForge AI end-to-end — algorithm design, frontend, backend, deployment. The pipeline parses your
+                  LinkedIn PDF, structures it into a strict JSON schema, and lets an AI agent edit it via tool-calls — so every
+                  change is safe, reversible, and stays ATS-friendly. Seven templates. Unlimited resumes. No paywalls.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-1.5">Why it matters</h3>
+                <p className="text-muted-foreground">
+                  I've made every feature I ever wished existed while job-hunting: chat-to-edit, one-click tailor to any JD,
+                  version history, and text-selectable PDFs that actually parse. If it helps one student land an interview,
+                  the project has done its job.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button size="sm" onClick={start} className="gap-2">Try it yourself <ArrowRight className="w-4 h-4" /></Button>
+                <Button size="sm" variant="outline" asChild>
+                  <a href="https://www.linkedin.com/in/yuvraj-singh-bundela" target="_blank" rel="noreferrer">Connect on LinkedIn</a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="border-t bg-[color:var(--color-surface)]">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center">
@@ -181,6 +248,7 @@ function Landing() {
           </Button>
         </div>
       </section>
+
 
 
       <footer className="border-t">

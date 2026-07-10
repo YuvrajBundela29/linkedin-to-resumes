@@ -19,9 +19,12 @@ import { TEMPLATES } from "@/templates";
 import { TEMPLATE_IDS, type TemplateId } from "@/lib/resume-schema";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Download, History, Loader2, Send, Sparkles, Target,
+  ArrowLeft, Download, History, Loader2, Send, Sparkles, Target, HelpCircle,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 export const Route = createFileRoute("/_authenticated/r/$resumeId")({
   head: () => ({ meta: [{ title: "Editor — ResumeForge AI" }, { name: "robots", content: "noindex" }] }),
@@ -124,13 +127,35 @@ function Editor() {
     }
   }
 
-  if (rQ.isLoading) return <div className="min-h-screen grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>;
+  if (rQ.isLoading) return (
+    <div className="h-[100dvh] bg-background flex flex-col">
+      <div className="border-b h-14 flex items-center px-4 gap-3">
+        <Skeleton className="h-8 w-8 rounded" />
+        <Skeleton className="h-4 w-40" />
+        <div className="ml-auto flex gap-2">
+          <Skeleton className="h-8 w-[180px]" />
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-32" />
+        </div>
+      </div>
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0 min-h-0">
+        <div className="p-4"><Skeleton className="w-full max-w-[794px] mx-auto aspect-[794/1123]" /></div>
+        <div className="border-l p-4 space-y-3 bg-[color:var(--color-surface)]">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-10 w-3/4 ml-auto" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </div>
+    </div>
+  );
   if (rQ.isError || !rQ.data) return <div className="min-h-screen grid place-items-center text-muted-foreground">Couldn't load this resume.</div>;
 
   const { resume, template, title } = rQ.data;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
+
       <header className="border-b">
         <div className="mx-auto max-w-[1600px] px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -172,6 +197,51 @@ function Editor() {
                 </div>
               </SheetContent>
             </Sheet>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1"><HelpCircle className="w-4 h-4" /> Guide</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-[color:var(--color-brand)]" /> How to use the AI editor</DialogTitle>
+                  <DialogDescription>Everything you can do — in one place.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-5 text-sm mt-2">
+                  <section>
+                    <h3 className="font-semibold mb-1.5">1. Edit content by chatting</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                      <li>"Add a bullet to my first job about leading a team of 5"</li>
+                      <li>"Rewrite my summary to be more concise and quantified"</li>
+                      <li>"Reorder education so my Master's is first"</li>
+                      <li>"Remove the last project"</li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">2. Change the look</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                      <li>Pick a template from the dropdown, or say <em>"switch to the executive template"</em>.</li>
+                      <li>Try: Classic · Modern · Compact · Technical · Executive · Elegant · Creative.</li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">3. Tailor to a job</h3>
+                    <p className="text-muted-foreground">Click <b>Tailor</b>, paste a job description, and the AI aligns your resume — keeping it ATS-safe.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">4. Undo any change</h3>
+                    <p className="text-muted-foreground">Every edit auto-snapshots. Click <b>History</b> to restore any earlier version.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-1.5">5. Download</h3>
+                    <p className="text-muted-foreground">Hit <b>Download PDF</b> for a text-selectable, ATS-safe file — never rasterized.</p>
+                  </section>
+                  <section className="rounded-md border p-3 bg-[color:var(--color-muted)]">
+                    <div className="font-semibold mb-1">Pro tip</div>
+                    <p className="text-muted-foreground">Ask for metrics ("quantify my bullets") — recruiters and ATS both reward numbers.</p>
+                  </section>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button variant="outline" size="sm" asChild><Link to="/r/$resumeId/tailor" params={{ resumeId }}><Target className="w-4 h-4 mr-1" /> Tailor</Link></Button>
             <Button size="sm" onClick={downloadPdf} className="gap-1"><Download className="w-4 h-4" /> Download PDF</Button>
           </div>
