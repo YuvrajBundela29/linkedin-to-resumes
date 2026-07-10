@@ -159,7 +159,7 @@
 @utility scanline {
   position: relative;
 }
-@utility scanline::after {
+.scanline::after {
   content: "";
   position: absolute; inset: 0;
   background: repeating-linear-gradient(0deg, transparent 0 3px, oklch(1 0 0 / 0.02) 3px 4px);
