@@ -127,13 +127,35 @@ function Editor() {
     }
   }
 
-  if (rQ.isLoading) return <div className="min-h-screen grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>;
+  if (rQ.isLoading) return (
+    <div className="h-[100dvh] bg-background flex flex-col">
+      <div className="border-b h-14 flex items-center px-4 gap-3">
+        <Skeleton className="h-8 w-8 rounded" />
+        <Skeleton className="h-4 w-40" />
+        <div className="ml-auto flex gap-2">
+          <Skeleton className="h-8 w-[180px]" />
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-32" />
+        </div>
+      </div>
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0 min-h-0">
+        <div className="p-4"><Skeleton className="w-full max-w-[794px] mx-auto aspect-[794/1123]" /></div>
+        <div className="border-l p-4 space-y-3 bg-[color:var(--color-surface)]">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-10 w-3/4 ml-auto" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </div>
+    </div>
+  );
   if (rQ.isError || !rQ.data) return <div className="min-h-screen grid place-items-center text-muted-foreground">Couldn't load this resume.</div>;
 
   const { resume, template, title } = rQ.data;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
+
       <header className="border-b">
         <div className="mx-auto max-w-[1600px] px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
