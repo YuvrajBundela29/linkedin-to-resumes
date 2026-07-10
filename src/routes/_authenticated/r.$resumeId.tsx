@@ -19,9 +19,12 @@ import { TEMPLATES } from "@/templates";
 import { TEMPLATE_IDS, type TemplateId } from "@/lib/resume-schema";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Download, History, Loader2, Send, Sparkles, Target,
+  ArrowLeft, Download, History, Loader2, Send, Sparkles, Target, HelpCircle,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 export const Route = createFileRoute("/_authenticated/r/$resumeId")({
   head: () => ({ meta: [{ title: "Editor — ResumeForge AI" }, { name: "robots", content: "noindex" }] }),
