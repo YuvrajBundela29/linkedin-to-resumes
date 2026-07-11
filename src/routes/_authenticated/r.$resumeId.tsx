@@ -11,11 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
+
 import {
   getResume, applyChatEdit, switchTemplate, listVersions, rollbackVersion, listChatMessages,
 } from "@/lib/resume.functions";
-import { TEMPLATES } from "@/templates";
+import { TEMPLATES, PdfDocumentFor } from "@/templates";
 import { TEMPLATE_IDS, type TemplateId } from "@/lib/resume-schema";
 import { toast } from "sonner";
 import {
@@ -24,6 +24,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { pdf } from "@react-pdf/renderer";
 
 
 export const Route = createFileRoute("/_authenticated/r/$resumeId")({
@@ -106,29 +107,23 @@ function Editor() {
   }
 
   async function downloadPdf() {
-    const { data: sess } = await supabase.auth.getSession();
-    const token = sess.session?.access_token;
-    if (!token) { toast.error("Sign in required"); return; }
+    if (!rQ.data) { toast.error("Resume not loaded"); return; }
     toast.info("Rendering PDF…");
     try {
-      const res = await fetch(`/api/resume/${resumeId}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error(await res.text() || "PDF failed");
-      const blob = await res.blob();
+      const blob = await pdf(PdfDocumentFor({ template: rQ.data.template, resume: rQ.data.resume })).toBlob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${rQ.data?.title ?? "resume"}.pdf`;
+      a.download = `${(rQ.data.title ?? "resume").replace(/[^\w\-]+/g, "_")}.pdf`;
       a.rel = "noopener";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      // Delay revoke so the browser can start the download first.
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       toast.success("PDF downloaded");
     } catch (e: any) {
-      toast.error(e.message ?? "PDF failed");
+      console.error("client pdf render failed", e);
+      toast.error(e?.message ?? "PDF failed");
     }
   }
 
