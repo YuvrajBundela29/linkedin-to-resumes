@@ -12,7 +12,8 @@ const s = StyleSheet.create({
   body: { padding: 40 },
   h2: { fontSize: 11, fontFamily: "Helvetica-Bold", color: ACCENT, textTransform: "uppercase", letterSpacing: 1.4, marginTop: 12, marginBottom: 6 },
   entry: { marginBottom: 8 },
-  row: { flexDirection: "row", justifyContent: "space-between" },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  left: { flex: 1, paddingRight: 8 },
   title: { fontFamily: "Helvetica-Bold", fontSize: 11 },
   dates: { color: "#666", fontSize: 9.5 },
   sub: { color: "#555", fontSize: 10, marginBottom: 2 },
@@ -43,7 +44,7 @@ export function CreativePdf({ resume }: { resume: Resume }) {
               {resume.experience.map((e, i) => (
                 <View key={i} style={s.entry} wrap={false}>
                   <View style={s.row}>
-                    <Text style={s.title}>{e.title}</Text>
+                    <Text style={[s.title, s.left]}>{e.title}</Text>
                     <Text style={s.dates}>{formatDateRange(e.start, e.end, e.current)}</Text>
                   </View>
                   <Text style={s.sub}>{[e.org, e.location].filter(Boolean).join(" • ")}</Text>
@@ -58,7 +59,7 @@ export function CreativePdf({ resume }: { resume: Resume }) {
               {resume.education.map((e, i) => (
                 <View key={i} style={s.entry} wrap={false}>
                   <View style={s.row}>
-                    <Text style={s.title}>{e.school}</Text>
+                    <Text style={[s.title, s.left]}>{e.school}</Text>
                     <Text style={s.dates}>{formatDateRange(e.start, e.end)}</Text>
                   </View>
                   <Text style={s.sub}>{[e.degree, e.field].filter(Boolean).join(" in ")}</Text>

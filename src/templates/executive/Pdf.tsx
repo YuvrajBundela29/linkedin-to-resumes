@@ -12,7 +12,8 @@ const s = StyleSheet.create({
   rule: { height: 1.5, backgroundColor: NAVY, marginTop: 10, marginBottom: 6 },
   h2: { fontSize: 11, fontFamily: "Times-Bold", color: NAVY, textTransform: "uppercase", letterSpacing: 1.2, marginTop: 12, marginBottom: 5, borderBottom: 0.5, borderColor: "#888", paddingBottom: 2 },
   entry: { marginBottom: 8 },
-  row: { flexDirection: "row", justifyContent: "space-between" },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  left: { flex: 1, paddingRight: 8 },
   title: { fontFamily: "Times-Bold" },
   dates: { color: "#555", fontSize: 9.5, fontFamily: "Times-Italic" },
   loc: { color: "#666", fontSize: 9.5, fontFamily: "Times-Italic", marginBottom: 2 },
@@ -45,7 +46,7 @@ export function ExecutivePdf({ resume }: { resume: Resume }) {
             {resume.experience.map((e, i) => (
               <View key={i} style={s.entry} wrap={false}>
                 <View style={s.row}>
-                  <Text><Text style={s.title}>{e.title}</Text>{e.org ? ` — ${e.org}` : ""}</Text>
+                  <Text style={s.left}><Text style={s.title}>{e.title}</Text>{e.org ? ` — ${e.org}` : ""}</Text>
                   <Text style={s.dates}>{formatDateRange(e.start, e.end, e.current)}</Text>
                 </View>
                 {!!e.location && <Text style={s.loc}>{e.location}</Text>}
@@ -61,7 +62,7 @@ export function ExecutivePdf({ resume }: { resume: Resume }) {
             {resume.education.map((e, i) => (
               <View key={i} style={s.entry} wrap={false}>
                 <View style={s.row}>
-                  <Text><Text style={s.title}>{e.school}</Text>{(e.degree || e.field) ? ` — ${[e.degree, e.field].filter(Boolean).join(" in ")}` : ""}</Text>
+                  <Text style={s.left}><Text style={s.title}>{e.school}</Text>{(e.degree || e.field) ? ` — ${[e.degree, e.field].filter(Boolean).join(" in ")}` : ""}</Text>
                   <Text style={s.dates}>{formatDateRange(e.start, e.end)}</Text>
                 </View>
               </View>

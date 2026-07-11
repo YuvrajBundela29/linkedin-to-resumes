@@ -154,18 +154,18 @@ function Editor() {
   const { resume, template, title } = rQ.data;
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
+    <div className="min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden bg-background flex flex-col">
 
       <header className="border-b">
-        <div className="mx-auto max-w-[1600px] px-4 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 min-h-14 py-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Button variant="ghost" size="sm" asChild><Link to="/dashboard"><ArrowLeft className="w-4 h-4" /></Link></Button>
             <Logo className="hidden sm:inline-flex" />
-            <div className="text-sm text-muted-foreground truncate">/ {title}</div>
+            <div className="text-sm text-muted-foreground truncate min-w-0">/ {title}</div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
             <Select value={template} onValueChange={(v) => swapMut.mutate(v as TemplateId)}>
-              <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[140px] sm:w-[180px] h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {TEMPLATE_IDS.map((id) => (
                   <SelectItem key={id} value={id}>
@@ -179,7 +179,11 @@ function Editor() {
             </Select>
 
             <Sheet onOpenChange={(open) => { if (open) versionsQ.refetch(); }}>
-              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><History className="w-4 h-4" /> History</Button></SheetTrigger>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1 px-2 sm:px-3">
+                  <History className="w-4 h-4" /> <span className="hidden sm:inline">History</span>
+                </Button>
+              </SheetTrigger>
               <SheetContent>
                 <SheetHeader><SheetTitle>Version history</SheetTitle></SheetHeader>
                 <div className="mt-4 space-y-2">
@@ -199,7 +203,9 @@ function Editor() {
             </Sheet>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1"><HelpCircle className="w-4 h-4" /> Guide</Button>
+                <Button variant="outline" size="sm" className="gap-1 px-2 sm:px-3">
+                  <HelpCircle className="w-4 h-4" /> <span className="hidden sm:inline">Guide</span>
+                </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
@@ -242,19 +248,25 @@ function Editor() {
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" size="sm" asChild><Link to="/r/$resumeId/tailor" params={{ resumeId }}><Target className="w-4 h-4 mr-1" /> Tailor</Link></Button>
-            <Button size="sm" onClick={downloadPdf} className="gap-1"><Download className="w-4 h-4" /> Download PDF</Button>
+            <Button variant="outline" size="sm" asChild className="px-2 sm:px-3">
+              <Link to="/r/$resumeId/tailor" params={{ resumeId }}>
+                <Target className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Tailor</span>
+              </Link>
+            </Button>
+            <Button size="sm" onClick={downloadPdf} className="gap-1 px-2 sm:px-3">
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Download PDF</span><span className="sm:hidden">PDF</span>
+            </Button>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0 min-h-0">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0 lg:min-h-0">
         {/* Preview */}
-        <div className="min-h-0 overflow-auto p-4">
+        <div className="lg:min-h-0 lg:overflow-auto p-3 sm:p-4">
           <ResumePreview resume={resume} template={template} />
         </div>
         {/* Chat */}
-        <div className="border-l flex flex-col min-h-0 bg-[color:var(--color-surface)]">
+        <div className="border-t lg:border-t-0 lg:border-l flex flex-col lg:min-h-0 h-[70vh] lg:h-auto bg-[color:var(--color-surface)]">
           <div className="px-4 py-3 border-b flex items-center gap-2 text-sm font-medium">
             <Sparkles className="w-4 h-4 text-[color:var(--color-brand)]" /> AI editor
           </div>

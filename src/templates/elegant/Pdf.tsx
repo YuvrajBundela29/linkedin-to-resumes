@@ -12,7 +12,8 @@ const s = StyleSheet.create({
   contact: { fontSize: 9.5, color: "#555", marginTop: 3 },
   h2: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginTop: 12, marginBottom: 6 },
   entry: { marginBottom: 8 },
-  row: { flexDirection: "row", justifyContent: "space-between" },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  left: { flex: 1, paddingRight: 8 },
   title: { fontFamily: "Helvetica-Bold", fontSize: 11 },
   dates: { color: "#666", fontSize: 9.5 },
   loc: { color: "#666", fontSize: 9.5, marginBottom: 2 },
@@ -48,7 +49,7 @@ export function ElegantPdf({ resume }: { resume: Resume }) {
             {resume.experience.map((e, i) => (
               <View key={i} style={s.entry} wrap={false}>
                 <View style={s.row}>
-                  <Text><Text style={s.title}>{e.title}</Text>{e.org ? ` · ${e.org}` : ""}</Text>
+                  <Text style={s.left}><Text style={s.title}>{e.title}</Text>{e.org ? ` · ${e.org}` : ""}</Text>
                   <Text style={s.dates}>{formatDateRange(e.start, e.end, e.current)}</Text>
                 </View>
                 {!!e.location && <Text style={s.loc}>{e.location}</Text>}
@@ -64,7 +65,7 @@ export function ElegantPdf({ resume }: { resume: Resume }) {
             {resume.education.map((e, i) => (
               <View key={i} style={s.entry} wrap={false}>
                 <View style={s.row}>
-                  <Text><Text style={s.title}>{e.school}</Text>{(e.degree || e.field) ? ` · ${[e.degree, e.field].filter(Boolean).join(" in ")}` : ""}</Text>
+                  <Text style={s.left}><Text style={s.title}>{e.school}</Text>{(e.degree || e.field) ? ` · ${[e.degree, e.field].filter(Boolean).join(" in ")}` : ""}</Text>
                   <Text style={s.dates}>{formatDateRange(e.start, e.end)}</Text>
                 </View>
               </View>
