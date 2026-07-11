@@ -46,7 +46,7 @@ export function ExecutivePdf({ resume }: { resume: Resume }) {
             {resume.experience.map((e, i) => (
               <View key={i} style={s.entry} wrap={false}>
                 <View style={s.row}>
-                  <Text><Text style={s.title}>{e.title}</Text>{e.org ? ` — ${e.org}` : ""}</Text>
+                  <Text style={s.left}><Text style={s.title}>{e.title}</Text>{e.org ? ` — ${e.org}` : ""}</Text>
                   <Text style={s.dates}>{formatDateRange(e.start, e.end, e.current)}</Text>
                 </View>
                 {!!e.location && <Text style={s.loc}>{e.location}</Text>}
