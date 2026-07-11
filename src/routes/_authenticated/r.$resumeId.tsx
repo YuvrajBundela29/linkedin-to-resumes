@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   getResume, applyChatEdit, switchTemplate, listVersions, rollbackVersion, listChatMessages,
 } from "@/lib/resume.functions";
-import { TEMPLATES } from "@/templates";
+import { TEMPLATES, PdfDocumentFor } from "@/templates";
 import { TEMPLATE_IDS, type TemplateId } from "@/lib/resume-schema";
 import { toast } from "sonner";
 import {
