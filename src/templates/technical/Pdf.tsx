@@ -70,7 +70,7 @@ export function TechnicalPdf({ resume }: { resume: Resume }) {
             {resume.education.map((e, i) => (
               <View key={i} style={s.entry} wrap={false}>
                 <View style={s.row}>
-                  <Text><Text style={s.bold}>{e.school}</Text>{(e.degree || e.field) ? ` — ${[e.degree, e.field].filter(Boolean).join(" in ")}` : ""}</Text>
+                  <Text style={s.left}><Text style={s.bold}>{e.school}</Text>{(e.degree || e.field) ? ` — ${[e.degree, e.field].filter(Boolean).join(" in ")}` : ""}</Text>
                   <Text style={s.dates}>{formatDateRange(e.start, e.end)}</Text>
                 </View>
               </View>
