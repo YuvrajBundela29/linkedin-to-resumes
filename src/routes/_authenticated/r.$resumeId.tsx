@@ -25,7 +25,6 @@ import ReactMarkdown from "react-markdown";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pdf } from "@react-pdf/renderer";
-import { PdfDocumentFor } from "@/templates";
 
 
 export const Route = createFileRoute("/_authenticated/r/$resumeId")({
