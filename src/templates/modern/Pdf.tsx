@@ -58,7 +58,7 @@ export function ModernPdf({ resume }: { resume: Resume }) {
             {resume.education.map((e, i) => (
               <View key={i} style={s.entry} wrap={false}>
                 <View style={s.row}>
-                  <Text style={s.title}>{e.school}</Text>
+                  <Text style={[s.title, s.left]}>{e.school}</Text>
                   <Text style={s.dates}>{formatDateRange(e.start, e.end)}</Text>
                 </View>
                 <Text style={s.sub}>{[e.degree, e.field].filter(Boolean).join(" in ")}</Text>
