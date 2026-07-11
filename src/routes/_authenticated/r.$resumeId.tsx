@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
+
 import {
   getResume, applyChatEdit, switchTemplate, listVersions, rollbackVersion, listChatMessages,
 } from "@/lib/resume.functions";
