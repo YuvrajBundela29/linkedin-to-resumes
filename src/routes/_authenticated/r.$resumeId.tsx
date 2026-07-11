@@ -260,13 +260,13 @@ function Editor() {
         </div>
       </header>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0 min-h-0">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0 lg:min-h-0">
         {/* Preview */}
-        <div className="min-h-0 overflow-auto p-4">
+        <div className="lg:min-h-0 lg:overflow-auto p-3 sm:p-4">
           <ResumePreview resume={resume} template={template} />
         </div>
         {/* Chat */}
-        <div className="border-l flex flex-col min-h-0 bg-[color:var(--color-surface)]">
+        <div className="border-t lg:border-t-0 lg:border-l flex flex-col lg:min-h-0 h-[70vh] lg:h-auto bg-[color:var(--color-surface)]">
           <div className="px-4 py-3 border-b flex items-center gap-2 text-sm font-medium">
             <Sparkles className="w-4 h-4 text-[color:var(--color-brand)]" /> AI editor
           </div>
