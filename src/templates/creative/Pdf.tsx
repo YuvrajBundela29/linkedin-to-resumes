@@ -44,7 +44,7 @@ export function CreativePdf({ resume }: { resume: Resume }) {
               {resume.experience.map((e, i) => (
                 <View key={i} style={s.entry} wrap={false}>
                   <View style={s.row}>
-                    <Text style={s.title}>{e.title}</Text>
+                    <Text style={[s.title, s.left]}>{e.title}</Text>
                     <Text style={s.dates}>{formatDateRange(e.start, e.end, e.current)}</Text>
                   </View>
                   <Text style={s.sub}>{[e.org, e.location].filter(Boolean).join(" • ")}</Text>
