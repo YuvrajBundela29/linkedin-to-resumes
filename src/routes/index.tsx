@@ -2,10 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, Check, FileText, Sparkles, Zap, MessageSquare, Download } from "lucide-react";
+import { ArrowRight, Check, FileText, Sparkles, Zap, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, useSpring, useMotionValue, type MotionValue } from "motion/react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -29,6 +29,232 @@ function useSignedIn() {
   return signedIn;
 }
 
+// Lines that "build" onto the resume as the user scrolls.
+const RESUME_LINES: { kind: "h1" | "sub" | "h2" | "bold" | "text" | "space"; text?: string }[] = [
+  { kind: "h1", text: "Yuvraj Singh Bundela" },
+  { kind: "sub", text: "yuvraj@example.com · Jhansi, IN · linkedin.com/in/yuvraj" },
+  { kind: "space" },
+  { kind: "h2", text: "EXPERIENCE" },
+  { kind: "bold", text: "AI Engineer — ConvertXpert · 2024 – Present" },
+  { kind: "text", text: "• Shipped multimodal PDF-to-JSON pipeline, cut manual QA 78%." },
+  { kind: "text", text: "• Built agentic chat editor with 12 tool-calls; 4.9★ user rating." },
+  { kind: "space" },
+  { kind: "bold", text: "Security Researcher — SR Group · 2023" },
+  { kind: "text", text: "• Disclosed 6 CVEs; hardened auth flow for 40k+ users." },
+  { kind: "space" },
+  { kind: "h2", text: "EDUCATION" },
+  { kind: "bold", text: "IIT Guwahati — BS, AI & Data Science" },
+  { kind: "text", text: "AKTU — B.Tech, Cybersecurity" },
+  { kind: "space" },
+  { kind: "h2", text: "SKILLS" },
+  { kind: "text", text: "Python · TypeScript · Vertex AI · GCP · SQL · Pen-testing" },
+];
+
+function ResumeLine({ line, index, progress }: { line: (typeof RESUME_LINES)[number]; index: number; progress: MotionValue<number> }) {
+  // Each line reveals in its own scroll window
+  const total = RESUME_LINES.length;
+  const start = index / total;
+  const end = start + 1 / total;
+  const opacity = useTransform(progress, [start, end], [0, 1]);
+  const y = useTransform(progress, [start, end], [10, 0]);
+  const clip = useTransform(progress, [start, end], ["inset(0 100% 0 0)", "inset(0 0% 0 0)"]);
+
+  if (line.kind === "space") return <div className="h-2" />;
+
+  const cls =
+    line.kind === "h1"
+      ? "text-[15px] font-bold text-black"
+      : line.kind === "sub"
+      ? "text-[7px] text-neutral-500"
+      : line.kind === "h2"
+      ? "text-[7px] font-bold tracking-widest text-black border-b border-black mt-1 mb-1"
+      : line.kind === "bold"
+      ? "text-[8px] font-semibold text-black"
+      : "text-[7.5px] text-neutral-800 leading-snug";
+
+  return (
+    <motion.div style={{ opacity, y, clipPath: clip }} className={cls}>
+      {line.text}
+    </motion.div>
+  );
+}
+
+function Hero3D({ onStart }: { onStart: () => void }) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: stageRef, offset: ["start start", "end start"] });
+
+  // Overall build progress across the pinned zone
+  const buildRaw = useTransform(scrollYProgress, [0, 0.85], [0, 1]);
+  const build = useSpring(buildRaw, { stiffness: 120, damping: 30, mass: 0.6 });
+
+  // 3D rotation: dramatic tilt → flat as you scroll
+  const rotateX = useTransform(build, [0, 1], [22, 4]);
+  const rotateY = useTransform(build, [0, 1], [-24, -2]);
+  const rotateZ = useTransform(build, [0, 1], [-4, 0]);
+  const scale = useTransform(build, [0, 1], [0.88, 1]);
+  const lift = useTransform(build, [0, 1], [40, -10]);
+
+  // Mouse parallax when idle
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const pRotY = useSpring(mx, { stiffness: 80, damping: 20 });
+  const pRotX = useSpring(my, { stiffness: 80, damping: 20 });
+
+  // Continuous float
+  const [floatY, setFloatY] = useState(0);
+  useEffect(() => {
+    let raf: number;
+    const t0 = performance.now();
+    const tick = (t: number) => {
+      setFloatY(Math.sin((t - t0) / 900) * 4);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <section
+      ref={stageRef}
+      className="relative"
+      style={{ height: "220vh" }}
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        const nx = (e.clientX - r.left) / r.width - 0.5;
+        const ny = (e.clientY - r.top) / r.height - 0.5;
+        mx.set(nx * -12);
+        my.set(ny * 8);
+      }}
+    >
+      <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Ambient sci-fi glow */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 grid-bg opacity-40" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_20%_10%,color-mix(in_oklab,var(--color-brand)_35%,transparent),transparent_55%),radial-gradient(ellipse_at_85%_20%,color-mix(in_oklab,var(--color-brand-2)_30%,transparent),transparent_55%)]" />
+
+        <div className="mx-auto max-w-6xl h-full px-6 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8 items-center">
+          {/* Copy */}
+          <div className="pt-24 lg:pt-0 relative z-10 text-center lg:text-left">
+            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground">
+              <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" />
+              <span className="text-[color:var(--color-brand)]">Neural pipeline online</span>
+            </div>
+            <h1 className="mt-4 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+              Watch your resume <span className="text-gradient">build itself</span> as you scroll.
+            </h1>
+            <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+              Upload your LinkedIn PDF. Our AI structures it into an ATS-safe resume — then let the chat editor polish it in plain English.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3 justify-center lg:justify-start">
+              <Button size="lg" onClick={onStart} className="gap-2">
+                Upload your LinkedIn PDF <ArrowRight className="w-4 h-4" />
+              </Button>
+              <Button size="lg" variant="outline" asChild><a href="#how">How it works</a></Button>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted-foreground justify-center lg:justify-start">
+              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> ATS-safe</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Text-selectable PDF</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> No credit card</span>
+            </div>
+
+            {/* Scroll hint */}
+            <motion.div
+              className="mt-10 text-xs uppercase tracking-[0.3em] text-muted-foreground/70 hidden lg:block"
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 2.2, repeat: Infinity }}
+            >
+              ↓ scroll to build
+            </motion.div>
+          </div>
+
+          {/* 3D Resume Stage */}
+          <div className="relative h-[520px] sm:h-[560px] lg:h-[620px]" style={{ perspective: 1600 }}>
+            {/* Glow underlay */}
+            <motion.div
+              aria-hidden
+              className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-[80%] rounded-3xl bg-[color:var(--color-brand)]/25 blur-3xl -z-10"
+              style={{ opacity: useTransform(build, [0, 1], [0.4, 0.8]) }}
+            />
+
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{
+                rotateX,
+                rotateY,
+                rotateZ,
+                scale,
+                y: lift,
+                transformStyle: "preserve-3d",
+              }}
+            >
+              <motion.div
+                style={{
+                  rotateY: pRotY,
+                  rotateX: pRotX,
+                  y: floatY,
+                  transformStyle: "preserve-3d",
+                }}
+                className="relative"
+              >
+                {/* Depth stack: back sheets */}
+                <div aria-hidden className="absolute inset-0 rounded-lg bg-white/60 shadow-2xl" style={{ transform: "translateZ(-40px) translateY(14px) scale(0.97)" }} />
+                <div aria-hidden className="absolute inset-0 rounded-lg bg-white/80 shadow-xl" style={{ transform: "translateZ(-20px) translateY(7px) scale(0.985)" }} />
+
+                {/* The building resume */}
+                <div
+                  className="relative w-[300px] sm:w-[340px] md:w-[380px] aspect-[1/1.414] rounded-lg bg-white text-black p-5 sm:p-6 shadow-[0_50px_120px_-20px_rgba(6,10,25,0.7),0_20px_50px_-15px_rgba(56,189,248,0.35)] overflow-hidden"
+                  style={{ transform: "translateZ(0)" }}
+                >
+                  {/* Cyan scanning beam */}
+                  <motion.div
+                    aria-hidden
+                    className="absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-cyan-300/40 to-transparent pointer-events-none"
+                    style={{ top: useTransform(build, [0, 1], ["-15%", "115%"]) }}
+                  />
+
+                  <div className="relative space-y-[3px]">
+                    {RESUME_LINES.map((line, i) => (
+                      <ResumeLine key={i} line={line} index={i} progress={build} />
+                    ))}
+                  </div>
+
+                  {/* Corner brand chip */}
+                  <div className="absolute bottom-2 right-2 text-[6px] font-mono text-neutral-400 tracking-widest">RESUMEFORGE.AI</div>
+                </div>
+
+                {/* Floating cyber-chips */}
+                <motion.div
+                  className="absolute -left-8 top-8 glass px-2.5 py-1.5 rounded-md text-[10px] font-mono text-[color:var(--color-brand)] border border-white/10"
+                  style={{ transform: "translateZ(60px)", opacity: useTransform(build, [0, 0.2, 1], [0, 1, 1]) }}
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity }}
+                >
+                  ✓ ATS score 98
+                </motion.div>
+                <motion.div
+                  className="absolute -right-6 top-1/3 glass px-2.5 py-1.5 rounded-md text-[10px] font-mono text-[color:var(--color-brand-2)] border border-white/10"
+                  style={{ transform: "translateZ(70px)", opacity: useTransform(build, [0.2, 0.5, 1], [0, 1, 1]) }}
+                  animate={{ y: [0, 6, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: 0.4 }}
+                >
+                  + 12 keywords
+                </motion.div>
+                <motion.div
+                  className="absolute -right-4 bottom-10 glass px-2.5 py-1.5 rounded-md text-[10px] font-mono text-white/80 border border-white/10"
+                  style={{ transform: "translateZ(55px)", opacity: useTransform(build, [0.5, 0.9, 1], [0, 1, 1]) }}
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: 0.8 }}
+                >
+                  PDF ready
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Landing() {
   const navigate = useNavigate();
   const signedIn = useSignedIn();
@@ -40,22 +266,18 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-clip">
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 grid-bg opacity-40" />
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[800px] bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--color-brand)_35%,transparent),transparent_60%),radial-gradient(circle_at_80%_10%,color-mix(in_oklab,var(--color-brand-2)_28%,transparent),transparent_55%)]" />
-
       <header className="border-b border-white/10 glass sticky top-0 z-40">
-        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
           <Link to="/"><Logo /></Link>
-          <nav className="flex items-center gap-2">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">Features</a>
-            <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">How it works</a>
-            <a href="#about" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline">About</a>
-
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline">How it works</a>
+            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline">Features</a>
+            <a href="#about" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline">About</a>
             {signedIn ? (
               <Button asChild size="sm"><Link to="/dashboard">Dashboard</Link></Button>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm"><Link to="/auth" search={{ next: "/dashboard" }}>Sign in</Link></Button>
+                <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/auth" search={{ next: "/dashboard" }}>Sign in</Link></Button>
                 <Button size="sm" onClick={start}>Get started</Button>
               </>
             )}
@@ -63,97 +285,45 @@ function Landing() {
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 pb-16 md:pt-28 md:pb-24">
-        <div className="grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground">
-              <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> Powered by Lovable AI · <span className="text-[color:var(--color-brand)]">Neural pipeline online</span>
-            </div>
-            <h1 className="mt-4 text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
-              Turn your LinkedIn into an <span className="text-gradient">interview-ready</span> resume in 60 seconds.
-            </h1>
-            <p className="mt-5 text-lg text-muted-foreground max-w-xl">
-              Upload your LinkedIn "Save to PDF" export. Our AI structures it into an ATS-safe resume you can polish by chatting in plain English.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button size="lg" onClick={start} className="gap-2">
-                Upload your LinkedIn PDF <ArrowRight className="w-4 h-4" />
-              </Button>
-              <Button size="lg" variant="outline" asChild><a href="#how">See how it works</a></Button>
-            </div>
-            <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> ATS-safe by default</span>
-              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> Text-selectable PDF</span>
-              <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-[color:var(--color-brand)]" /> No credit card</span>
-            </div>
-          </div>
-
-          {/* Before/After preview */}
-          <div className="relative [perspective:1400px]">
-            <Card className="p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.25),0_10px_30px_-15px_rgba(0,0,0,0.15)] border border-white/40 bg-background/70 backdrop-blur-xl [transform:rotateX(6deg)_rotateY(-8deg)] transition-transform duration-500 hover:[transform:rotateX(2deg)_rotateY(-2deg)]">
-              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Before → After</div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="border rounded-md p-3 bg-[color:var(--color-muted)] font-mono text-[10px] leading-snug text-muted-foreground max-h-64 overflow-hidden shadow-inner">
-                  Jane Doe<br/>
-                  Software Engineer at Acme Corp<br/>
-                  San Francisco Bay Area · 500+ connections<br/><br/>
-                  Experience<br/>
-                  Senior Software Engineer<br/>
-                  Acme Corp · Full-time<br/>
-                  Jan 2022 - Present · 2 yrs 6 mos<br/>
-                  San Francisco, CA<br/>
-                  - Led migration of monolith to microservices<br/>
-                  - Mentored 5 engineers<br/>
-                  ...
-                </div>
-                <div className="border rounded-md overflow-hidden bg-white text-[7px] leading-snug text-black p-3 max-h-64 shadow-lg">
-                  <div className="font-bold text-[11px]">Jane Doe</div>
-                  <div className="text-[6px] text-neutral-500 mb-1">jane@doe.com · San Francisco, CA</div>
-                  <div className="uppercase text-[6px] font-bold border-b border-black mb-1 mt-1">Experience</div>
-                  <div className="font-bold">Senior Software Engineer, Acme Corp <span className="float-right font-normal text-neutral-500">Jan 2022 – Present</span></div>
-                  <div className="ml-2">• Led monolith → microservices migration, cutting p95 latency 42%.</div>
-                  <div className="ml-2">• Mentored 5 engineers; two promoted within a year.</div>
-                  <div className="uppercase text-[6px] font-bold border-b border-black mb-1 mt-2">Skills</div>
-                  <div>TypeScript · Go · Kubernetes · Postgres · gRPC</div>
-                </div>
-              </div>
-            </Card>
-            <div aria-hidden className="absolute -inset-6 -z-10 rounded-3xl bg-[color:var(--color-brand)]/10 blur-3xl" />
-          </div>
-        </div>
-      </section>
-
+      <Hero3D onStart={start} />
 
       {/* HOW IT WORKS */}
-      <section id="how" className="border-t bg-[color:var(--color-surface)]">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+      <section id="how" className="border-t border-white/10 bg-[color:var(--color-surface)] relative">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Three steps. One resume you'll actually send.</h2>
-          <div className="mt-12 grid md:grid-cols-3 gap-6">
+          <div className="mt-10 sm:mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
               { icon: FileText, title: "Upload your PDF", body: "Export from LinkedIn ('Save to PDF' under More on your profile), then drop it in." },
               { icon: Zap, title: "AI structures it", body: "We extract every role, degree, and skill into a clean, ATS-safe layout — no tables, no icons, standard headers." },
               { icon: MessageSquare, title: "Chat to polish", body: "Ask for edits like 'shorten my summary' or 'reorder education'. The preview updates live." },
             ].map((s, i) => (
-              <Card key={i} className="p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] bg-background/70 backdrop-blur-sm">
-                <div className="w-9 h-9 rounded-md bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4">
-                  <s.icon className="w-5 h-5" />
-                </div>
-                <div className="text-sm text-muted-foreground mb-1">Step {i+1}</div>
-                <h3 className="font-semibold text-lg">{s.title}</h3>
-                <p className="text-muted-foreground mt-1">{s.body}</p>
-              </Card>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <Card className="p-6 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_-15px_color-mix(in_oklab,var(--color-brand)_35%,transparent)] bg-background/60 backdrop-blur-sm border border-white/10">
+                  <div className="w-10 h-10 rounded-md bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4 neon-ring">
+                    <s.icon className="w-5 h-5" />
+                  </div>
+                  <div className="text-xs text-muted-foreground mb-1 font-mono uppercase tracking-wider">Step {i + 1}</div>
+                  <h3 className="font-semibold text-lg">{s.title}</h3>
+                  <p className="text-muted-foreground mt-1 text-sm">{s.body}</p>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="border-t">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+      <section id="features" className="border-t border-white/10">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Designed to pass Applicant Tracking Systems.</h2>
           <p className="text-muted-foreground mt-3 max-w-2xl">Every template follows ATS rules by default so recruiters — and their software — actually read your resume.</p>
-          <div className="mt-10 grid md:grid-cols-2 gap-x-10 gap-y-4">
+          <div className="mt-8 sm:mt-10 grid sm:grid-cols-2 gap-x-8 sm:gap-x-10 gap-y-3 sm:gap-y-4">
             {[
               "Single-column layout — parsers handle it correctly",
               "Standard fonts (Arial, Helvetica, Georgia)",
@@ -161,33 +331,40 @@ function Landing() {
               "No text inside images or icons-only sections",
               "Reverse-chronological order in every section",
               "Text-selectable PDF output — never rasterized",
-              "Four templates, one JSON — swap without redoing your work",
+              "Seven templates, one JSON — swap without redoing your work",
               "Live chat editor with tool-calling under the hood",
-            ].map((t) => (
-              <div key={t} className="flex items-start gap-2 text-sm">
+            ].map((t, i) => (
+              <motion.div
+                key={t}
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.04 }}
+                className="flex items-start gap-2 text-sm"
+              >
                 <Check className="w-4 h-4 mt-0.5 text-[color:var(--color-brand)] shrink-0" /> <span>{t}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ABOUT / STORY */}
-      <section id="about" className="border-t">
-        <div className="mx-auto max-w-4xl px-6 py-24">
+      <section id="about" className="border-t border-white/10">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20 sm:py-24">
           <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-4">
             <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> The story behind ResumeForge AI
           </div>
           <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
             Hi, I'm <span className="text-gradient">Yuvraj Singh Bundela</span>.
           </h2>
-          <p className="mt-3 text-muted-foreground text-lg">
+          <p className="mt-3 text-muted-foreground text-base sm:text-lg">
             A dual-track student sitting at the intersection of <b>Cybersecurity</b> and <b>AI</b> — and the builder behind this platform.
           </p>
 
-          <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-8 items-start">
-            <Card className="p-6 bg-background/70 backdrop-blur-sm">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Quick facts</div>
+          <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-6 sm:gap-8 items-start">
+            <Card className="p-6 bg-background/60 backdrop-blur-sm border border-white/10">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-mono">Quick facts</div>
               <ul className="space-y-2 text-sm">
                 <li><b>@ IIT Guwahati</b> — BS in AI & Data Science</li>
                 <li><b>@ AKTU / SR Group</b> — B.Tech in Cybersecurity</li>
@@ -208,7 +385,6 @@ function Landing() {
                   And nothing let me just <em>talk</em> to my resume like a normal human.
                 </p>
               </div>
-
               <div>
                 <h3 className="font-semibold text-lg mb-1.5">What I did about it</h3>
                 <p className="text-muted-foreground">
@@ -217,7 +393,6 @@ function Landing() {
                   change is safe, reversible, and stays ATS-friendly. Seven templates. Unlimited resumes. No paywalls.
                 </p>
               </div>
-
               <div>
                 <h3 className="font-semibold text-lg mb-1.5">Why it matters</h3>
                 <p className="text-muted-foreground">
@@ -226,7 +401,6 @@ function Landing() {
                   the project has done its job.
                 </p>
               </div>
-
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button size="sm" onClick={start} className="gap-2">Try it yourself <ArrowRight className="w-4 h-4" /></Button>
                 <Button size="sm" variant="outline" asChild>
@@ -239,8 +413,8 @@ function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="border-t bg-[color:var(--color-surface)]">
-        <div className="mx-auto max-w-4xl px-6 py-20 text-center">
+      <section className="border-t border-white/10 bg-[color:var(--color-surface)]">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Free. Unlimited. Yours.</h2>
           <p className="text-muted-foreground mt-3 max-w-xl mx-auto">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
           <Button size="lg" onClick={start} className="mt-8 gap-2">
@@ -249,10 +423,8 @@ function Landing() {
         </div>
       </section>
 
-
-
-      <footer className="border-t">
-        <div className="mx-auto max-w-6xl px-6 py-8 flex items-center justify-between text-sm text-muted-foreground">
+      <footer className="border-t border-white/10">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted-foreground">
           <Logo />
           <div>© {new Date().getFullYear()} ResumeForge AI</div>
         </div>
