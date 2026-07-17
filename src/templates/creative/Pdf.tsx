@@ -6,7 +6,7 @@ const ACCENT = "#dc5c3a"; // warm coral
 const s = StyleSheet.create({
   page: { fontSize: 10.5, fontFamily: "Helvetica", color: "#111", lineHeight: 1.45 },
   header: { backgroundColor: ACCENT, padding: 34, color: "#fff" },
-  name: { fontSize: 26, fontFamily: "Helvetica-Bold", color: "#fff", letterSpacing: -0.4 },
+  name: { fontSize: 26, fontFamily: "Helvetica-Bold", color: "#fff", letterSpacing: -0.4, lineHeight: 1.25 },
   headline: { fontSize: 11.5, color: "#fff", marginTop: 3, opacity: 0.95 },
   contact: { fontSize: 9.5, color: "#fff", marginTop: 5, opacity: 0.9 },
   body: { padding: 40 },

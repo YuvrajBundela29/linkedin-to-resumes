@@ -7,7 +7,7 @@ const s = StyleSheet.create({
   page: { padding: 50, fontSize: 10.5, fontFamily: "Helvetica", color: "#111", lineHeight: 1.5 },
   header: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
   accent: { width: 4, height: 54, backgroundColor: ACCENT, marginRight: 14 },
-  name: { fontSize: 24, fontFamily: "Helvetica-Bold", letterSpacing: -0.4 },
+  name: { fontSize: 24, fontFamily: "Helvetica-Bold", letterSpacing: -0.4, lineHeight: 1.25 },
   headline: { fontSize: 11, color: ACCENT, marginTop: 2, fontFamily: "Helvetica-Bold" },
   contact: { fontSize: 9.5, color: "#555", marginTop: 3 },
   h2: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginTop: 12, marginBottom: 6 },

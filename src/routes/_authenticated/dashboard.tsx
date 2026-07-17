@@ -74,28 +74,28 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <header className="border-b">
-        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-          <Link to="/"><Logo /></Link>
-          <div className="flex items-center gap-2">
+        <div className="mx-auto max-w-6xl px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+          <Link to="/" className="min-w-0 shrink"><Logo className="[&>span]:hidden sm:[&>span]:inline" /></Link>
+          <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
             {adminQ.data?.isAdmin && (
-              <Button asChild variant="ghost" size="sm" className="text-[color:var(--color-brand)]">
-                <Link to="/admin"><Shield className="w-4 h-4 mr-1" /> Admin</Link>
+              <Button asChild variant="ghost" size="sm" className="text-[color:var(--color-brand)] px-2">
+                <Link to="/admin"><Shield className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Admin</span></Link>
               </Button>
             )}
-            <Button asChild variant="ghost" size="sm"><Link to="/account"><User className="w-4 h-4 mr-1" /> Account</Link></Button>
-            <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="w-4 h-4 mr-1" /> Sign out</Button>
+            <Button asChild variant="ghost" size="sm" className="px-2"><Link to="/account"><User className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Account</span></Link></Button>
+            <Button variant="ghost" size="sm" onClick={signOut} className="px-2"><LogOut className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Sign out</span></Button>
           </div>
         </div>
       </header>
 
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-3 sm:px-6 py-6 sm:py-10">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Your resumes</h1>
-            <p className="text-muted-foreground mt-1">Upload a LinkedIn PDF or open one to edit.</p>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Your resumes</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Upload a LinkedIn PDF or open one to edit.</p>
           </div>
         </div>
 
