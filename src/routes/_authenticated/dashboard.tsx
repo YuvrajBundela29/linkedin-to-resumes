@@ -91,11 +91,11 @@ function Dashboard() {
       </header>
 
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-3 sm:px-6 py-6 sm:py-10">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Your resumes</h1>
-            <p className="text-muted-foreground mt-1">Upload a LinkedIn PDF or open one to edit.</p>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Your resumes</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Upload a LinkedIn PDF or open one to edit.</p>
           </div>
         </div>
 
