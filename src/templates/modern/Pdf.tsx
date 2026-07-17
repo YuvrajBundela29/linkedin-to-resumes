@@ -4,7 +4,7 @@ import { formatDateRange, joinContact, nonEmpty } from "../shared";
 
 const s = StyleSheet.create({
   page: { padding: 52, fontSize: 10.5, fontFamily: "Helvetica", color: "#111", lineHeight: 1.45 },
-  name: { fontSize: 26, fontFamily: "Helvetica-Bold", letterSpacing: -0.5 },
+  name: { fontSize: 26, fontFamily: "Helvetica-Bold", letterSpacing: -0.5, lineHeight: 1.25 },
   headline: { fontSize: 11, color: "#333", marginTop: 2 },
   contact: { fontSize: 9.5, color: "#555", marginTop: 4 },
   rule: { height: 1, backgroundColor: "#111", marginTop: 12, marginBottom: 12 },
