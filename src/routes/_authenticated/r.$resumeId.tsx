@@ -270,11 +270,11 @@ function Editor() {
           <ResumePreview resume={resume} template={template} />
         </div>
         {/* Chat */}
-        <div className="border-t lg:border-t-0 lg:border-l flex flex-col lg:min-h-0 h-[70vh] lg:h-auto bg-[color:var(--color-surface)]">
+        <div className="border-t lg:border-t-0 lg:border-l flex flex-col min-h-0 h-[calc(100dvh-5.75rem)] lg:h-auto bg-[color:var(--color-surface)]">
           <div className="px-4 py-3 border-b flex items-center gap-2 text-sm font-medium">
             <Sparkles className="w-4 h-4 text-[color:var(--color-brand)]" /> AI editor
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 scroll-pb-48">
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : ""}>
                 {m.role === "user" ? (
@@ -295,7 +295,7 @@ function Editor() {
             )}
             <div ref={chatEndRef} />
           </div>
-          <div className="border-t bg-background">
+          <div className="border-t bg-background shrink-0">
             <div className="px-3 pt-2 flex flex-wrap gap-1.5">
               {[
                 "Strengthen my bullets with metrics",
