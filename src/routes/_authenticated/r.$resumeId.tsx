@@ -155,7 +155,7 @@ function Editor() {
   const { resume, template, title } = rQ.data;
 
   return (
-    <div className="min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden bg-background flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
 
       <header className="border-b overflow-hidden">
         <div className="mx-auto max-w-[1600px] px-3 sm:px-4 min-h-14 py-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
