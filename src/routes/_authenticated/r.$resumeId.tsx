@@ -265,13 +265,35 @@ function Editor() {
         </div>
       </header>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0 lg:min-h-0">
+      {/* Mobile tab switcher */}
+      <div className="lg:hidden border-b bg-background shrink-0">
+        <div className="mx-auto max-w-[1600px] px-3 py-2 grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            onClick={() => setMobileTab("preview")}
+            className={`text-xs font-medium rounded-md px-3 py-1.5 border transition-colors ${mobileTab === "preview" ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-[color:var(--color-accent)]"}`}
+          >
+            Preview
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab("chat")}
+            className={`text-xs font-medium rounded-md px-3 py-1.5 border transition-colors inline-flex items-center justify-center gap-1.5 ${mobileTab === "chat" ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-[color:var(--color-accent)]"}`}
+          >
+            <Sparkles className="w-3.5 h-3.5" /> AI editor
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-0">
         {/* Preview */}
-        <div className="lg:min-h-0 lg:overflow-auto p-3 sm:p-4">
-          <ResumePreview resume={resume} template={template} />
+        <div className={`${mobileTab === "preview" ? "flex" : "hidden"} lg:flex min-h-0 overflow-auto p-3 sm:p-4`}>
+          <div className="w-full">
+            <ResumePreview resume={resume} template={template} />
+          </div>
         </div>
         {/* Chat */}
-        <div className="border-t lg:border-t-0 lg:border-l flex flex-col min-h-0 h-[calc(100dvh-5.75rem)] lg:h-auto bg-[color:var(--color-surface)]">
+        <div className={`${mobileTab === "chat" ? "flex" : "hidden"} lg:flex lg:border-l flex-col min-h-0 bg-[color:var(--color-surface)]`}>
           <div className="px-4 py-3 border-b flex items-center gap-2 text-sm font-medium">
             <Sparkles className="w-4 h-4 text-[color:var(--color-brand)]" /> AI editor
           </div>
