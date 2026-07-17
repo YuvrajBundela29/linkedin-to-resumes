@@ -53,6 +53,7 @@ function Editor() {
   const [messages, setMessages] = useState<Msg[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"preview" | "chat">("preview");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Hydrate from persisted history
