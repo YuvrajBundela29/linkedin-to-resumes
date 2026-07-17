@@ -156,16 +156,19 @@ function Editor() {
   return (
     <div className="min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden bg-background flex flex-col">
 
-      <header className="border-b">
-        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 min-h-14 py-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+      <header className="border-b overflow-hidden">
+        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 min-h-14 py-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 min-w-0">
             <Button variant="ghost" size="sm" asChild className="shrink-0"><Link to="/dashboard"><ArrowLeft className="w-4 h-4" /></Link></Button>
-            <Logo className="hidden md:inline-flex shrink-0" />
-            <div className="text-sm text-muted-foreground truncate min-w-0">/ {title}</div>
+            <div className="flex items-center gap-2 min-w-0">
+              <Logo className="hidden lg:inline-flex shrink-0" />
+              <div className="text-sm text-muted-foreground truncate min-w-0">/ {title}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+          <div className="min-w-0 overflow-x-auto pb-1 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max min-w-full items-center gap-1.5 sm:gap-2 md:min-w-0 md:justify-end">
             <Select value={template} onValueChange={(v) => swapMut.mutate(v as TemplateId)}>
-              <SelectTrigger className="w-[140px] sm:w-[180px] h-9"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[128px] sm:w-[180px] h-9 shrink-0"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {TEMPLATE_IDS.map((id) => (
                   <SelectItem key={id} value={id}>
@@ -180,7 +183,7 @@ function Editor() {
 
             <Sheet onOpenChange={(open) => { if (open) versionsQ.refetch(); }}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1 px-2 sm:px-3">
+                <Button variant="outline" size="sm" className="gap-1 px-2 sm:px-3 shrink-0">
                   <History className="w-4 h-4" /> <span className="hidden sm:inline">History</span>
                 </Button>
               </SheetTrigger>
@@ -203,7 +206,7 @@ function Editor() {
             </Sheet>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1 px-2 sm:px-3">
+                <Button variant="outline" size="sm" className="gap-1 px-2 sm:px-3 shrink-0">
                   <HelpCircle className="w-4 h-4" /> <span className="hidden sm:inline">Guide</span>
                 </Button>
               </DialogTrigger>
@@ -248,14 +251,15 @@ function Editor() {
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" size="sm" asChild className="px-2 sm:px-3">
+            <Button variant="outline" size="sm" asChild className="px-2 sm:px-3 shrink-0">
               <Link to="/r/$resumeId/tailor" params={{ resumeId }}>
                 <Target className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Tailor</span>
               </Link>
             </Button>
-            <Button size="sm" onClick={downloadPdf} className="gap-1 px-2 sm:px-3">
+            <Button size="sm" onClick={downloadPdf} className="gap-1 px-2 sm:px-3 shrink-0">
               <Download className="w-4 h-4" /> <span className="hidden sm:inline">Download PDF</span><span className="sm:hidden">PDF</span>
             </Button>
+            </div>
           </div>
         </div>
       </header>
