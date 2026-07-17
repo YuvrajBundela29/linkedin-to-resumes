@@ -6,9 +6,9 @@ const NAVY = "#0f2a4a";
 const s = StyleSheet.create({
   page: { padding: 54, fontSize: 10.5, fontFamily: "Times-Roman", color: "#111", lineHeight: 1.45 },
   header: { textAlign: "center", marginBottom: 10 },
-  name: { fontSize: 24, fontFamily: "Times-Bold", color: NAVY, letterSpacing: 1 },
-  headline: { fontSize: 11, color: "#333", marginTop: 3, fontFamily: "Times-Italic" },
-  contact: { fontSize: 9.5, color: "#555", marginTop: 4 },
+  name: { fontSize: 24, fontFamily: "Times-Bold", color: NAVY, letterSpacing: 1, lineHeight: 1.2, marginBottom: 6 },
+  headline: { fontSize: 11, color: "#333", marginTop: 2, marginBottom: 4, fontFamily: "Times-Italic", lineHeight: 1.3 },
+  contact: { fontSize: 9.5, color: "#555", marginTop: 4, lineHeight: 1.3 },
   rule: { height: 1.5, backgroundColor: NAVY, marginTop: 10, marginBottom: 6 },
   h2: { fontSize: 11, fontFamily: "Times-Bold", color: NAVY, textTransform: "uppercase", letterSpacing: 1.2, marginTop: 12, marginBottom: 5, borderBottom: 0.5, borderColor: "#888", paddingBottom: 2 },
   entry: { marginBottom: 8 },
