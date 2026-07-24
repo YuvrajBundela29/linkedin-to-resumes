@@ -457,20 +457,34 @@ function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-white/10 bg-[color:var(--color-surface)]">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Free. Unlimited. Yours.</h2>
-          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
-          <Button size="lg" onClick={start} className="mt-8 gap-2">
-            Get started <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
+      <section className="border-t border-white/10 bg-[color:var(--color-surface)] relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0 grid-bg opacity-30" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--color-brand)_25%,transparent),transparent_60%)]" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative mx-auto max-w-4xl px-4 sm:px-6 py-20 sm:py-28 text-center"
+        >
+          <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-5">
+            <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> Ready when you are
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight">Free. <span className="text-gradient">Unlimited.</span> Yours.</h2>
+          <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-base sm:text-lg">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
+          <div className="mt-8 flex flex-wrap gap-3 justify-center">
+            <Button size="lg" onClick={start} className="gap-2 shadow-[0_20px_60px_-20px_color-mix(in_oklab,var(--color-brand)_55%,transparent)]">
+              Get started <ArrowRight className="w-4 h-4" />
+            </Button>
+            <Button size="lg" variant="outline" asChild><a href="#how">Learn more</a></Button>
+          </div>
+        </motion.div>
       </section>
 
       <footer className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted-foreground">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <Logo />
-          <div>© {new Date().getFullYear()} ResumeForge AI</div>
+          <div>© {new Date().getFullYear()} ResumeForge AI · Crafted by Yuvraj Singh Bundela</div>
         </div>
       </footer>
     </div>
