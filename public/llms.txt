@@ -1,0 +1,10 @@
+# ResumeForge AI
+
+> Turn a LinkedIn "Save to PDF" export into a polished, ATS-friendly resume in about 60 seconds. AI extracts your profile, you edit by chatting in plain English, then download a text-selectable PDF.
+
+ResumeForge AI is an AI-powered resume builder. Users upload their LinkedIn profile PDF, an AI (Google Gemini via the Lovable AI Gateway) extracts structured data, and users refine it through a chat interface. Six ATS-safe templates are available, and export produces a real, text-selectable PDF.
+
+## Pages
+
+- [Home](/): Product overview, how it works, templates, and upload CTA.
+- [Guide: Export LinkedIn to Resume](/blog/how-to-export-linkedin-to-resume): Step-by-step guide to exporting a LinkedIn profile as a PDF and turning it into an ATS-safe resume.

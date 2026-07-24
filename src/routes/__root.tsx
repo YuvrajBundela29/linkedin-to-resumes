@@ -57,7 +57,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-const TITLE = "ResumeForge AI — LinkedIn PDF to interview-ready resume in 60 seconds";
+const TITLE = "ResumeForge AI — LinkedIn PDF to Resume in 60s";
 const DESC = "Turn your LinkedIn export into a polished, ATS-friendly resume. AI extracts, you chat to edit. Download a text-selectable PDF.";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
