@@ -32,23 +32,25 @@ function useSignedIn() {
 
 // Lines that "build" onto the resume as the user scrolls.
 const RESUME_LINES: { kind: "h1" | "sub" | "h2" | "bold" | "text" | "space"; text?: string }[] = [
-  { kind: "h1", text: "Yuvraj Singh Bundela" },
-  { kind: "sub", text: "yuvraj@example.com · Jhansi, IN · linkedin.com/in/yuvraj" },
+  { kind: "h1", text: "Alex Morgan" },
+  { kind: "sub", text: "alex.morgan@email.com · San Francisco, CA · linkedin.com/in/alexmorgan" },
+  { kind: "space" },
+  { kind: "h2", text: "SUMMARY" },
+  { kind: "text", text: "Product-minded software engineer with 6+ years shipping web apps at scale." },
   { kind: "space" },
   { kind: "h2", text: "EXPERIENCE" },
-  { kind: "bold", text: "AI Engineer — ConvertXpert · 2024 – Present" },
-  { kind: "text", text: "• Shipped multimodal PDF-to-JSON pipeline, cut manual QA 78%." },
-  { kind: "text", text: "• Built agentic chat editor with 12 tool-calls; 4.9★ user rating." },
+  { kind: "bold", text: "Senior Software Engineer — Northwind · 2022 – Present" },
+  { kind: "text", text: "• Led migration to TypeScript across 40+ services; cut prod incidents 62%." },
+  { kind: "text", text: "• Shipped realtime dashboards used by 120k weekly active users." },
   { kind: "space" },
-  { kind: "bold", text: "Security Researcher — SR Group · 2023" },
-  { kind: "text", text: "• Disclosed 6 CVEs; hardened auth flow for 40k+ users." },
+  { kind: "bold", text: "Software Engineer — Contoso · 2019 – 2022" },
+  { kind: "text", text: "• Built payments pipeline processing $8M/mo with 99.99% uptime." },
   { kind: "space" },
   { kind: "h2", text: "EDUCATION" },
-  { kind: "bold", text: "IIT Guwahati — BS, AI & Data Science" },
-  { kind: "text", text: "AKTU — B.Tech, Cybersecurity" },
+  { kind: "bold", text: "B.S. Computer Science — Stanford University" },
   { kind: "space" },
   { kind: "h2", text: "SKILLS" },
-  { kind: "text", text: "Python · TypeScript · Vertex AI · GCP · SQL · Pen-testing" },
+  { kind: "text", text: "TypeScript · React · Node.js · Postgres · AWS · GraphQL · Docker" },
 ];
 
 function ResumeLine({ line, index, progress }: { line: (typeof RESUME_LINES)[number]; index: number; progress: MotionValue<number> }) {
