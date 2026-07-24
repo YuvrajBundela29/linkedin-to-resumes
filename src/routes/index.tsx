@@ -32,33 +32,50 @@ function useSignedIn() {
 
 // Lines that "build" onto the resume as the user scrolls.
 const RESUME_LINES: { kind: "h1" | "sub" | "h2" | "bold" | "text" | "space"; text?: string }[] = [
-  { kind: "h1", text: "Yuvraj Singh Bundela" },
-  { kind: "sub", text: "yuvraj@example.com · Jhansi, IN · linkedin.com/in/yuvraj" },
+  { kind: "h1", text: "Alex Morgan" },
+  { kind: "sub", text: "alex.morgan@email.com · San Francisco, CA · linkedin.com/in/alexmorgan" },
+  { kind: "space" },
+  { kind: "h2", text: "SUMMARY" },
+  { kind: "text", text: "Product-minded software engineer with 6+ years shipping web apps at scale." },
   { kind: "space" },
   { kind: "h2", text: "EXPERIENCE" },
-  { kind: "bold", text: "AI Engineer — ConvertXpert · 2024 – Present" },
-  { kind: "text", text: "• Shipped multimodal PDF-to-JSON pipeline, cut manual QA 78%." },
-  { kind: "text", text: "• Built agentic chat editor with 12 tool-calls; 4.9★ user rating." },
+  { kind: "bold", text: "Senior Software Engineer — Northwind · 2022 – Present" },
+  { kind: "text", text: "• Led migration to TypeScript across 40+ services; cut prod incidents 62%." },
+  { kind: "text", text: "• Shipped realtime dashboards used by 120k weekly active users." },
   { kind: "space" },
-  { kind: "bold", text: "Security Researcher — SR Group · 2023" },
-  { kind: "text", text: "• Disclosed 6 CVEs; hardened auth flow for 40k+ users." },
+  { kind: "bold", text: "Software Engineer — Contoso · 2019 – 2022" },
+  { kind: "text", text: "• Built payments pipeline processing $8M/mo with 99.99% uptime." },
   { kind: "space" },
   { kind: "h2", text: "EDUCATION" },
-  { kind: "bold", text: "IIT Guwahati — BS, AI & Data Science" },
-  { kind: "text", text: "AKTU — B.Tech, Cybersecurity" },
+  { kind: "bold", text: "B.S. Computer Science — Stanford University" },
   { kind: "space" },
   { kind: "h2", text: "SKILLS" },
-  { kind: "text", text: "Python · TypeScript · Vertex AI · GCP · SQL · Pen-testing" },
+  { kind: "text", text: "TypeScript · React · Node.js · Postgres · AWS · GraphQL · Docker" },
 ];
 
 function ResumeLine({ line, index, progress }: { line: (typeof RESUME_LINES)[number]; index: number; progress: MotionValue<number> }) {
-  // Each line reveals in its own scroll window
   const total = RESUME_LINES.length;
   const start = index / total;
   const end = start + 1 / total;
   const opacity = useTransform(progress, [start, end], [0, 1]);
-  const y = useTransform(progress, [start, end], [10, 0]);
-  const clip = useTransform(progress, [start, end], ["inset(0 100% 0 0)", "inset(0 0% 0 0)"]);
+
+  // Per-kind entrance animation
+  const yShift = line.kind === "h1" ? 16 : line.kind === "h2" ? 0 : 8;
+  const xShift = line.kind === "h2" ? -18 : line.kind === "bold" ? 6 : 0;
+  const blurStart = line.kind === "text" || line.kind === "sub" ? 6 : 0;
+
+  const y = useTransform(progress, [start, end], [yShift, 0]);
+  const x = useTransform(progress, [start, end], [xShift, 0]);
+  const blur = useTransform(progress, [start, end], [blurStart, 0]);
+  const filter = useTransform(blur, (b) => `blur(${b}px)`);
+  // Typewriter reveal via clip-path from left for headings, wipe for others
+  const clip = useTransform(
+    progress,
+    [start, end],
+    line.kind === "h1" || line.kind === "h2"
+      ? ["inset(0 100% 0 0)", "inset(0 0% 0 0)"]
+      : ["inset(0 0 100% 0)", "inset(0 0 0% 0)"],
+  );
 
   if (line.kind === "space") return <div className="h-2" />;
 
@@ -74,7 +91,7 @@ function ResumeLine({ line, index, progress }: { line: (typeof RESUME_LINES)[num
       : "text-[7.5px] text-neutral-800 leading-snug";
 
   return (
-    <motion.div style={{ opacity, y, clipPath: clip }} className={cls}>
+    <motion.div style={{ opacity, y, x, filter, clipPath: clip }} className={cls}>
       {line.text}
     </motion.div>
   );
@@ -118,7 +135,7 @@ function Hero3D({ onStart }: { onStart: () => void }) {
     <section
       ref={stageRef}
       className="relative"
-      style={{ height: "220vh" }}
+      style={{ height: "clamp(180vh, 220vh, 260vh)" }}
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         const nx = (e.clientX - r.left) / r.width - 0.5;
@@ -205,12 +222,21 @@ function Hero3D({ onStart }: { onStart: () => void }) {
                   className="relative w-[300px] sm:w-[340px] md:w-[380px] aspect-[1/1.414] rounded-lg bg-white text-black p-5 sm:p-6 shadow-[0_50px_120px_-20px_rgba(6,10,25,0.7),0_20px_50px_-15px_rgba(56,189,248,0.35)] overflow-hidden"
                   style={{ transform: "translateZ(0)" }}
                 >
-                  {/* Cyan scanning beam */}
+                  {/* Cyan scanning beam (vertical) */}
                   <motion.div
                     aria-hidden
                     className="absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-cyan-300/40 to-transparent pointer-events-none"
                     style={{ top: useTransform(build, [0, 1], ["-15%", "115%"]) }}
                   />
+                  {/* Violet horizontal sweep */}
+                  <motion.div
+                    aria-hidden
+                    className="absolute inset-y-0 w-16 bg-gradient-to-r from-transparent via-fuchsia-300/25 to-transparent pointer-events-none mix-blend-screen"
+                    style={{ left: useTransform(build, [0, 1], ["-20%", "120%"]) }}
+                  />
+                  {/* Subtle grid overlay on the paper */}
+                  <div aria-hidden className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)", backgroundSize: "12px 12px" }} />
+
 
                   <div className="relative space-y-[3px]">
                     {RESUME_LINES.map((line, i) => (
