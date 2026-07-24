@@ -135,7 +135,7 @@ function Hero3D({ onStart }: { onStart: () => void }) {
     <section
       ref={stageRef}
       className="relative"
-      style={{ height: "220vh" }}
+      style={{ height: "clamp(180vh, 220vh, 260vh)" }}
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         const nx = (e.clientX - r.left) / r.width - 0.5;
