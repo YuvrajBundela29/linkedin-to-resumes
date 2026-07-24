@@ -255,6 +255,9 @@ function Hero3D({ onStart }: { onStart: () => void }) {
   );
 }
 
+const TEMPLATES = ["CLASSIC", "MODERN", "COMPACT", "TECHNICAL", "EXECUTIVE", "ELEGANT", "CREATIVE"];
+const MARQUEE = ["ATS-safe", "PDF-native", "Chat-to-edit", "Tool-calling AI", "Version history", "Tailor to JD", "Text-selectable", "7 templates", "Unlimited", "60-second build"];
+
 function Landing() {
   const navigate = useNavigate();
   const signedIn = useSignedIn();
@@ -265,20 +268,24 @@ function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-clip">
+    <div className="min-h-screen bg-background relative overflow-x-clip grain-fixed">
+      {/* HEADER */}
       <header className="border-b border-white/10 glass sticky top-0 z-40">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
-          <Link to="/"><Logo /></Link>
+          <Link to="/" className="flex items-center gap-3">
+            <Logo />
+            <span className="hidden md:inline text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground border border-white/10 rounded px-1.5 py-0.5">v1.0</span>
+          </Link>
           <nav className="flex items-center gap-1 sm:gap-2">
-            <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline">How it works</a>
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline">Features</a>
-            <a href="#about" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline">About</a>
+            <a href="#how" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline transition-colors">Pipeline</a>
+            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline transition-colors">Features</a>
+            <a href="#about" className="text-sm text-muted-foreground hover:text-foreground px-3 py-2 hidden md:inline transition-colors">Builder</a>
             {signedIn ? (
               <Button asChild size="sm"><Link to="/dashboard">Dashboard</Link></Button>
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/auth" search={{ next: "/dashboard" }}>Sign in</Link></Button>
-                <Button size="sm" onClick={start}>Get started</Button>
+                <Button size="sm" onClick={start} className="shine">Get started</Button>
               </>
             )}
           </nav>
@@ -287,64 +294,95 @@ function Landing() {
 
       <Hero3D onStart={start} />
 
-      {/* STATS BAR */}
-      <section className="border-t border-white/10 bg-gradient-to-b from-transparent to-[color:var(--color-surface)]/60">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      {/* MARQUEE */}
+      <div className="border-y border-white/10 bg-[color:var(--color-surface)]/60 backdrop-blur-md overflow-hidden py-4">
+        <div className="marquee-track">
+          {[...MARQUEE, ...MARQUEE].map((t, i) => (
+            <div key={i} className="flex items-center gap-8 px-6 shrink-0">
+              <span className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-chrome whitespace-nowrap">{t}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-brand)]" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* STATS BAR — editorial numerals */}
+      <section className="border-b border-white/10 relative">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-14 sm:py-20 grid grid-cols-2 md:grid-cols-4 gap-px bg-white/5 rounded-2xl overflow-hidden glass">
           {[
-            { k: "60s", v: "avg. build time" },
-            { k: "7", v: "ATS-safe templates" },
-            { k: "98%", v: "parser pass rate" },
-            { k: "∞", v: "resumes, forever free" },
+            { k: "60s", v: "build time", n: "01" },
+            { k: "07", v: "ATS templates", n: "02" },
+            { k: "98%", v: "parser pass", n: "03" },
+            { k: "∞", v: "resumes, free", n: "04" },
           ].map((s, i) => (
             <motion.div
               key={s.v}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="glass rounded-xl p-4 sm:p-5 text-center hover:-translate-y-1 transition-transform duration-300"
+              className="relative bg-background/40 backdrop-blur-sm p-6 sm:p-8 group hover:bg-background/60 transition-colors noise"
             >
-              <div className="text-3xl sm:text-4xl font-bold text-gradient font-display">{s.k}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground mt-1">{s.v}</div>
+              <div className="flex items-start justify-between">
+                <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground">{s.n}</div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-brand)] group-hover:animate-pulse" />
+              </div>
+              <div className="mt-4 sm:mt-6 text-5xl sm:text-6xl font-display font-bold tracking-tight text-chrome">{s.k}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-1 font-mono uppercase tracking-wider">{s.v}</div>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section id="how" className="border-t border-white/10 bg-[color:var(--color-surface)] relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full bg-[color:var(--color-brand)]/10 blur-3xl" />
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 relative">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-4">
-              <Zap className="w-3 h-3 text-[color:var(--color-brand)]" /> The pipeline
+      {/* HOW IT WORKS — asymmetric bento */}
+      <section id="how" className="border-b border-white/10 bg-[color:var(--color-surface)]/40 relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full bg-[color:var(--color-brand)]/8 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 grid-bg-fine opacity-30" />
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20 sm:py-28 relative">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12 sm:mb-16">
+            <div className="max-w-2xl">
+              <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-[color:var(--color-brand)] mb-4">— The Pipeline / 003</div>
+              <h2 className="text-4xl md:text-6xl font-display font-semibold tracking-tight leading-[1.02]">
+                Three moves.<br />
+                <span className="text-gradient">One resume</span> that lands.
+              </h2>
             </div>
-            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">Three steps. One resume you'll <span className="text-gradient">actually send</span>.</h2>
+            <p className="text-sm text-muted-foreground max-w-sm md:text-right">
+              Built end-to-end by a solo engineer. No middleware sprawl — just PDF in, JSON in the middle, chat on top, PDF out.
+            </p>
           </div>
-          <div className="mt-10 sm:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" style={{ perspective: 1200 }}>
+
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3 sm:gap-4">
             {[
-              { icon: FileText, title: "Upload your PDF", body: "Export from LinkedIn ('Save to PDF' under More on your profile), then drop it in." },
-              { icon: Zap, title: "AI structures it", body: "We extract every role, degree, and skill into a clean, ATS-safe layout — no tables, no icons, standard headers." },
-              { icon: MessageSquare, title: "Chat to polish", body: "Ask for edits like 'shorten my summary' or 'reorder education'. The preview updates live." },
+              { icon: FileText, title: "Upload your PDF", body: "Export from LinkedIn ('Save to PDF' under More on your profile), then drop it in.", n: "01", span: "md:col-span-3 md:row-span-2", tall: true },
+              { icon: Zap, title: "AI structures it", body: "Gemini multimodal extracts every role, degree, and skill into a strict JSON schema — no hallucinations, no lost detail.", n: "02", span: "md:col-span-3" },
+              { icon: MessageSquare, title: "Chat to polish", body: "Ask for edits in plain English. Tool-calling guarantees safe, reversible changes.", n: "03", span: "md:col-span-3" },
             ].map((s, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 40, rotateX: -8 }}
-                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                whileHover={{ y: -8, rotateX: 4, rotateY: -3, scale: 1.02 }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -6 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
+                className={s.span}
                 style={{ transformStyle: "preserve-3d" }}
               >
-                <Card className="relative p-6 h-full bg-background/60 backdrop-blur-sm border border-white/10 overflow-hidden group">
+                <Card className={cn(
+                  "relative h-full glass-strong border border-white/10 overflow-hidden group shine",
+                  s.tall ? "p-7 sm:p-9 min-h-[280px] md:min-h-full" : "p-6 sm:p-7 min-h-[200px]"
+                )}>
                   <div aria-hidden className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-[color:var(--color-brand)]/10 via-transparent to-[color:var(--color-brand-2)]/10" />
-                  <div className="relative">
-                    <div className="w-11 h-11 rounded-lg bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4 neon-ring">
-                      <s.icon className="w-5 h-5" />
+                  <div aria-hidden className="absolute inset-0 noise opacity-40" />
+                  <div className="relative flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className={cn("rounded-lg bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center neon-ring", s.tall ? "w-14 h-14" : "w-11 h-11")}>
+                        <s.icon className={s.tall ? "w-6 h-6" : "w-5 h-5"} />
+                      </div>
+                      <div className="font-display text-5xl sm:text-6xl font-bold text-white/5 leading-none">{s.n}</div>
                     </div>
-                    <div className="text-xs text-muted-foreground mb-1 font-mono uppercase tracking-wider">Step {String(i + 1).padStart(2, "0")}</div>
-                    <h3 className="font-semibold text-lg">{s.title}</h3>
-                    <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{s.body}</p>
+                    <h3 className={cn("font-display font-semibold tracking-tight", s.tall ? "text-2xl sm:text-3xl" : "text-xl")}>{s.title}</h3>
+                    <p className={cn("text-muted-foreground mt-3 leading-relaxed", s.tall ? "text-base" : "text-sm")}>{s.body}</p>
                   </div>
                 </Card>
               </motion.div>
@@ -353,18 +391,62 @@ function Landing() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="border-t border-white/10 relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full bg-[color:var(--color-brand-2)]/10 blur-3xl" />
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 relative">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-4">
-              <Check className="w-3 h-3 text-[color:var(--color-brand)]" /> Built for the bots
+      {/* TEMPLATES STRIP */}
+      <section className="border-b border-white/10 relative overflow-hidden py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-[color:var(--color-brand)] mb-2">— Seven templates / 004</div>
+              <h3 className="text-2xl sm:text-3xl font-display font-semibold tracking-tight">One JSON. Swap freely.</h3>
             </div>
-            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">Designed to pass <span className="text-gradient">Applicant Tracking Systems</span>.</h2>
-            <p className="text-muted-foreground mt-3 max-w-2xl">Every template follows ATS rules by default so recruiters — and their software — actually read your resume.</p>
+            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-muted-foreground">
+              <span className="w-6 h-px bg-white/20" />
+              <span>ATS-verified</span>
+            </div>
           </div>
-          <div className="mt-10 sm:mt-12 grid sm:grid-cols-2 gap-3 sm:gap-4">
+        </div>
+        <div className="relative overflow-hidden">
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-20 z-10 bg-gradient-to-r from-background to-transparent" />
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-20 z-10 bg-gradient-to-l from-background to-transparent" />
+          <div className="marquee-track gap-4 px-4">
+            {[...TEMPLATES, ...TEMPLATES].map((t, i) => (
+              <div key={i} className="shrink-0 w-[220px] sm:w-[260px] aspect-[1/1.414] rounded-lg glass-strong p-5 relative overflow-hidden noise group hover:-translate-y-1 transition-transform duration-500">
+                <div className="text-[9px] font-mono uppercase tracking-[0.25em] text-[color:var(--color-brand)] mb-4">TPL / {String(i % 7 + 1).padStart(2, "0")}</div>
+                <div className="font-display text-lg font-bold text-chrome mb-4">{t}</div>
+                <div className="space-y-2">
+                  <div className="h-1.5 bg-white/10 rounded w-3/4" />
+                  <div className="h-1.5 bg-white/10 rounded w-1/2" />
+                  <div className="h-3" />
+                  <div className="h-1 bg-white/8 rounded w-full" />
+                  <div className="h-1 bg-white/8 rounded w-11/12" />
+                  <div className="h-1 bg-white/8 rounded w-4/5" />
+                  <div className="h-3" />
+                  <div className="h-1 bg-white/8 rounded w-full" />
+                  <div className="h-1 bg-white/8 rounded w-10/12" />
+                  <div className="h-1 bg-white/8 rounded w-3/4" />
+                </div>
+                <div className="absolute inset-x-4 bottom-4 flex items-center justify-between text-[9px] font-mono text-muted-foreground">
+                  <span>A4 · 96dpi</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-brand)]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES — glass bento */}
+      <section id="features" className="border-b border-white/10 relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full bg-[color:var(--color-brand-2)]/8 blur-3xl" />
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20 sm:py-28 relative">
+          <div className="max-w-2xl mb-12">
+            <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-[color:var(--color-brand)] mb-4">— Built for the bots / 005</div>
+            <h2 className="text-4xl md:text-6xl font-display font-semibold tracking-tight leading-[1.02]">
+              Designed to pass<br />
+              <span className="text-gradient">Applicant Tracking Systems</span>.
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {[
               "Single-column layout — parsers handle it correctly",
               "Standard fonts (Arial, Helvetica, Georgia)",
@@ -374,80 +456,89 @@ function Landing() {
               "Text-selectable PDF output — never rasterized",
               "Seven templates, one JSON — swap without redoing your work",
               "Live chat editor with tool-calling under the hood",
+              "Tailor to any JD — reweight bullets and keywords in seconds",
             ].map((t, i) => (
               <motion.div
                 key={t}
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: i * 0.04 }}
-                className="flex items-start gap-3 text-sm glass rounded-lg p-3 sm:p-4 hover:border-[color:var(--color-brand)]/40 transition-colors"
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+                className="glass rounded-xl p-4 sm:p-5 hover:border-[color:var(--color-brand)]/40 hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden"
               >
-                <div className="w-5 h-5 rounded-full bg-[color:var(--color-brand)]/15 text-[color:var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
-                  <Check className="w-3 h-3" />
+                <div aria-hidden className="absolute inset-0 noise opacity-30" />
+                <div className="relative flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-md bg-[color:var(--color-brand)]/15 text-[color:var(--color-brand)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Check className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-sm leading-relaxed">{t}</span>
                 </div>
-                <span className="leading-relaxed">{t}</span>
+                <div className="relative mt-3 text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">FEAT / {String(i + 1).padStart(2, "0")}</div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ABOUT / STORY */}
-      <section id="about" className="border-t border-white/10">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20 sm:py-24">
-          <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-4">
-            <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> The story behind ResumeForge AI
-          </div>
-          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
-            Hi, I'm <span className="text-gradient">Yuvraj Singh Bundela</span>.
+      {/* ABOUT — magazine spread */}
+      <section id="about" className="border-b border-white/10 relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0 grid-bg-fine opacity-20" />
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20 sm:py-32 relative">
+          <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-[color:var(--color-brand)] mb-4">— The builder / 006</div>
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-semibold tracking-tight leading-[0.98]">
+            Hi, I'm <span className="text-gradient italic">Yuvraj</span>.<br />
+            <span className="text-white/40">I built this in public.</span>
           </h2>
-          <p className="mt-3 text-muted-foreground text-base sm:text-lg">
-            A dual-track student sitting at the intersection of <b>Cybersecurity</b> and <b>AI</b> — and the builder behind this platform.
-          </p>
 
-          <div className="mt-10 grid md:grid-cols-[1fr_1.4fr] gap-6 sm:gap-8 items-start">
-            <Card className="p-6 bg-background/60 backdrop-blur-sm border border-white/10">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-mono">Quick facts</div>
-              <ul className="space-y-2 text-sm">
-                <li><b>@ IIT Guwahati</b> — BS in AI & Data Science</li>
-                <li><b>@ AKTU / SR Group</b> — B.Tech in Cybersecurity</li>
-                <li>Founder — <b>ConvertXpert</b>, <b>Mini Mind</b>, <b>Auto Prompt</b></li>
-                <li>Python · C++ · SQL · Vertex AI · GCP</li>
-                <li>Ethical hacking · ML · Data analysis</li>
-                <li>Competitive chess player</li>
-                <li>Based in Jhansi, Uttar Pradesh 🇮🇳</li>
-              </ul>
-            </Card>
+          <div className="mt-14 sm:mt-20 grid lg:grid-cols-[1fr_1.6fr] gap-8 sm:gap-14 items-start">
+            <div className="lg:sticky lg:top-24 space-y-4">
+              <Card className="glass-strong p-6 border border-white/10 relative overflow-hidden noise">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4 font-mono">— File / builder.json</div>
+                <ul className="space-y-2.5 text-sm font-mono">
+                  <li className="flex gap-3"><span className="text-[color:var(--color-brand)] w-20 shrink-0">edu_01</span><span>IIT Guwahati · AI & DS</span></li>
+                  <li className="flex gap-3"><span className="text-[color:var(--color-brand)] w-20 shrink-0">edu_02</span><span>AKTU · Cybersecurity</span></li>
+                  <li className="flex gap-3"><span className="text-[color:var(--color-brand)] w-20 shrink-0">founded</span><span>ConvertXpert, Mini Mind, Auto Prompt</span></li>
+                  <li className="flex gap-3"><span className="text-[color:var(--color-brand)] w-20 shrink-0">stack</span><span>Python · TS · Vertex AI · GCP</span></li>
+                  <li className="flex gap-3"><span className="text-[color:var(--color-brand)] w-20 shrink-0">skills</span><span>ML · Pen-testing · Data</span></li>
+                  <li className="flex gap-3"><span className="text-[color:var(--color-brand)] w-20 shrink-0">based</span><span>Jhansi, UP 🇮🇳</span></li>
+                  <li className="flex gap-3"><span className="text-[color:var(--color-brand)] w-20 shrink-0">plays</span><span>Chess (competitive)</span></li>
+                </ul>
+              </Card>
+            </div>
 
-            <div className="space-y-5 text-[15px] leading-relaxed">
+            <div className="space-y-10">
               <div>
-                <h3 className="font-semibold text-lg mb-1.5">The problem I kept hitting</h3>
-                <p className="text-muted-foreground">
-                  Every time I applied for internships, I fought the same battle: my LinkedIn was rich, my experience was real —
-                  but turning it into a clean, <b>ATS-safe</b> resume took hours. Templates were paywalled. AI tools rewrote things I never said.
-                  And nothing let me just <em>talk</em> to my resume like a normal human.
+                <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground mb-3">§ 01 — The problem</div>
+                <h3 className="font-display text-2xl sm:text-3xl font-semibold mb-3 tracking-tight">Every application, the same battle.</h3>
+                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
+                  My LinkedIn was rich. My experience was real. But turning it into an <b className="text-foreground">ATS-safe</b> resume took hours — templates were paywalled, AI tools rewrote things I never said, and nothing let me just <em>talk</em> to my resume.
                 </p>
               </div>
+
+              <blockquote className="border-l-2 border-[color:var(--color-brand)] pl-6 py-2 relative">
+                <div aria-hidden className="absolute -top-4 -left-2 font-display text-7xl text-[color:var(--color-brand)]/20 leading-none">"</div>
+                <p className="text-xl sm:text-2xl font-display italic leading-snug">If it helps <span className="text-gradient not-italic font-semibold">one student</span> land an interview, the project has done its job.</p>
+              </blockquote>
+
               <div>
-                <h3 className="font-semibold text-lg mb-1.5">What I did about it</h3>
-                <p className="text-muted-foreground">
-                  I built ResumeForge AI end-to-end — algorithm design, frontend, backend, deployment. The pipeline parses your
-                  LinkedIn PDF, structures it into a strict JSON schema, and lets an AI agent edit it via tool-calls — so every
-                  change is safe, reversible, and stays ATS-friendly. Seven templates. Unlimited resumes. No paywalls.
+                <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground mb-3">§ 02 — What I did</div>
+                <h3 className="font-display text-2xl sm:text-3xl font-semibold mb-3 tracking-tight">Built it end-to-end. Alone.</h3>
+                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
+                  Algorithm, frontend, backend, deployment. The pipeline parses your LinkedIn PDF, structures it into strict JSON, and lets an AI agent edit via tool-calls — so every change is safe, reversible, and stays ATS-friendly.
                 </p>
               </div>
+
               <div>
-                <h3 className="font-semibold text-lg mb-1.5">Why it matters</h3>
-                <p className="text-muted-foreground">
-                  I've made every feature I ever wished existed while job-hunting: chat-to-edit, one-click tailor to any JD,
-                  version history, and text-selectable PDFs that actually parse. If it helps one student land an interview,
-                  the project has done its job.
+                <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground mb-3">§ 03 — Why free</div>
+                <h3 className="font-display text-2xl sm:text-3xl font-semibold mb-3 tracking-tight">Seven templates. Unlimited resumes.</h3>
+                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
+                  Chat-to-edit, one-click tailor to any JD, version history, and text-selectable PDFs that actually parse. No paywalls, no cards, no catch.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button size="sm" onClick={start} className="gap-2">Try it yourself <ArrowRight className="w-4 h-4" /></Button>
-                <Button size="sm" variant="outline" asChild>
+
+              <div className="flex flex-wrap gap-3 pt-4">
+                <Button size="lg" onClick={start} className="gap-2 shine">Try it yourself <ArrowRight className="w-4 h-4" /></Button>
+                <Button size="lg" variant="outline" asChild>
                   <a href="https://www.linkedin.com/in/yuvraj-singh-bundela" target="_blank" rel="noreferrer">Connect on LinkedIn</a>
                 </Button>
               </div>
@@ -457,34 +548,45 @@ function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-white/10 bg-[color:var(--color-surface)] relative overflow-hidden">
+      <section className="border-b border-white/10 relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 grid-bg opacity-30" />
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--color-brand)_25%,transparent),transparent_60%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--color-brand)_28%,transparent),transparent_60%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 noise opacity-40" />
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.94 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="relative mx-auto max-w-4xl px-4 sm:px-6 py-20 sm:py-28 text-center"
+          transition={{ duration: 0.7 }}
+          className="relative mx-auto max-w-4xl px-4 sm:px-6 py-24 sm:py-32 text-center"
         >
-          <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-5">
+          <div className="inline-flex items-center gap-1.5 rounded-full glass-strong px-3 py-1 text-xs text-muted-foreground mb-6">
             <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> Ready when you are
           </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight">Free. <span className="text-gradient">Unlimited.</span> Yours.</h2>
-          <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-base sm:text-lg">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
-          <div className="mt-8 flex flex-wrap gap-3 justify-center">
-            <Button size="lg" onClick={start} className="gap-2 shadow-[0_20px_60px_-20px_color-mix(in_oklab,var(--color-brand)_55%,transparent)]">
+          <h2 className="text-5xl sm:text-6xl md:text-7xl font-display font-semibold tracking-tight leading-[0.98]">
+            Free.<br />
+            <span className="text-gradient">Unlimited.</span><br />
+            Yours.
+          </h2>
+          <p className="text-muted-foreground mt-6 max-w-xl mx-auto text-base sm:text-lg">
+            Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.
+          </p>
+          <div className="mt-10 flex flex-wrap gap-3 justify-center">
+            <Button size="lg" onClick={start} className="gap-2 shine shadow-[0_20px_60px_-20px_color-mix(in_oklab,var(--color-brand)_55%,transparent)]">
               Get started <ArrowRight className="w-4 h-4" />
             </Button>
             <Button size="lg" variant="outline" asChild><a href="#how">Learn more</a></Button>
           </div>
+          <div className="mt-10 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">— No credit card · No email spam · Just resumes —</div>
         </motion.div>
       </section>
 
-      <footer className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
-          <Logo />
-          <div>© {new Date().getFullYear()} ResumeForge AI · Crafted by Yuvraj Singh Bundela</div>
+      <footer className="border-t border-white/10 relative">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid gap-6 sm:grid-cols-[1fr_auto] items-center">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <Logo />
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground border border-white/10 rounded px-1.5 py-0.5">v1.0 · stable</span>
+          </div>
+          <div className="text-xs text-muted-foreground font-mono">© {new Date().getFullYear()} — Crafted by Yuvraj Singh Bundela · Jhansi 🇮🇳</div>
         </div>
       </footer>
     </div>
