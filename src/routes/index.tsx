@@ -222,12 +222,21 @@ function Hero3D({ onStart }: { onStart: () => void }) {
                   className="relative w-[300px] sm:w-[340px] md:w-[380px] aspect-[1/1.414] rounded-lg bg-white text-black p-5 sm:p-6 shadow-[0_50px_120px_-20px_rgba(6,10,25,0.7),0_20px_50px_-15px_rgba(56,189,248,0.35)] overflow-hidden"
                   style={{ transform: "translateZ(0)" }}
                 >
-                  {/* Cyan scanning beam */}
+                  {/* Cyan scanning beam (vertical) */}
                   <motion.div
                     aria-hidden
                     className="absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-cyan-300/40 to-transparent pointer-events-none"
                     style={{ top: useTransform(build, [0, 1], ["-15%", "115%"]) }}
                   />
+                  {/* Violet horizontal sweep */}
+                  <motion.div
+                    aria-hidden
+                    className="absolute inset-y-0 w-16 bg-gradient-to-r from-transparent via-fuchsia-300/25 to-transparent pointer-events-none mix-blend-screen"
+                    style={{ left: useTransform(build, [0, 1], ["-20%", "120%"]) }}
+                  />
+                  {/* Subtle grid overlay on the paper */}
+                  <div aria-hidden className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)", backgroundSize: "12px 12px" }} />
+
 
                   <div className="relative space-y-[3px]">
                     {RESUME_LINES.map((line, i) => (
