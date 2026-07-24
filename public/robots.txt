@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /account
+Disallow: /admin
+Disallow: /r/
+Disallow: /auth
+
+Sitemap: https://linkedin-to-resumes.lovable.app/sitemap.xml
