@@ -287,11 +287,41 @@ function Landing() {
 
       <Hero3D onStart={start} />
 
+      {/* STATS BAR */}
+      <section className="border-t border-white/10 bg-gradient-to-b from-transparent to-[color:var(--color-surface)]/60">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          {[
+            { k: "60s", v: "avg. build time" },
+            { k: "7", v: "ATS-safe templates" },
+            { k: "98%", v: "parser pass rate" },
+            { k: "∞", v: "resumes, forever free" },
+          ].map((s, i) => (
+            <motion.div
+              key={s.v}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="glass rounded-xl p-4 sm:p-5 text-center hover:-translate-y-1 transition-transform duration-300"
+            >
+              <div className="text-3xl sm:text-4xl font-bold text-gradient font-display">{s.k}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-1">{s.v}</div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
-      <section id="how" className="border-t border-white/10 bg-[color:var(--color-surface)] relative">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Three steps. One resume you'll actually send.</h2>
-          <div className="mt-10 sm:mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <section id="how" className="border-t border-white/10 bg-[color:var(--color-surface)] relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full bg-[color:var(--color-brand)]/10 blur-3xl" />
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 relative">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-4">
+              <Zap className="w-3 h-3 text-[color:var(--color-brand)]" /> The pipeline
+            </div>
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">Three steps. One resume you'll <span className="text-gradient">actually send</span>.</h2>
+          </div>
+          <div className="mt-10 sm:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" style={{ perspective: 1200 }}>
             {[
               { icon: FileText, title: "Upload your PDF", body: "Export from LinkedIn ('Save to PDF' under More on your profile), then drop it in." },
               { icon: Zap, title: "AI structures it", body: "We extract every role, degree, and skill into a clean, ATS-safe layout — no tables, no icons, standard headers." },
@@ -299,18 +329,23 @@ function Landing() {
             ].map((s, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 40, rotateX: -8 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                whileHover={{ y: -8, rotateX: 4, rotateY: -3, scale: 1.02 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
+                style={{ transformStyle: "preserve-3d" }}
               >
-                <Card className="p-6 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_-15px_color-mix(in_oklab,var(--color-brand)_35%,transparent)] bg-background/60 backdrop-blur-sm border border-white/10">
-                  <div className="w-10 h-10 rounded-md bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4 neon-ring">
-                    <s.icon className="w-5 h-5" />
+                <Card className="relative p-6 h-full bg-background/60 backdrop-blur-sm border border-white/10 overflow-hidden group">
+                  <div aria-hidden className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-[color:var(--color-brand)]/10 via-transparent to-[color:var(--color-brand-2)]/10" />
+                  <div className="relative">
+                    <div className="w-11 h-11 rounded-lg bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] flex items-center justify-center mb-4 neon-ring">
+                      <s.icon className="w-5 h-5" />
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-1 font-mono uppercase tracking-wider">Step {String(i + 1).padStart(2, "0")}</div>
+                    <h3 className="font-semibold text-lg">{s.title}</h3>
+                    <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{s.body}</p>
                   </div>
-                  <div className="text-xs text-muted-foreground mb-1 font-mono uppercase tracking-wider">Step {i + 1}</div>
-                  <h3 className="font-semibold text-lg">{s.title}</h3>
-                  <p className="text-muted-foreground mt-1 text-sm">{s.body}</p>
                 </Card>
               </motion.div>
             ))}
@@ -319,11 +354,17 @@ function Landing() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Designed to pass Applicant Tracking Systems.</h2>
-          <p className="text-muted-foreground mt-3 max-w-2xl">Every template follows ATS rules by default so recruiters — and their software — actually read your resume.</p>
-          <div className="mt-8 sm:mt-10 grid sm:grid-cols-2 gap-x-8 sm:gap-x-10 gap-y-3 sm:gap-y-4">
+      <section id="features" className="border-t border-white/10 relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full bg-[color:var(--color-brand-2)]/10 blur-3xl" />
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 relative">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-4">
+              <Check className="w-3 h-3 text-[color:var(--color-brand)]" /> Built for the bots
+            </div>
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">Designed to pass <span className="text-gradient">Applicant Tracking Systems</span>.</h2>
+            <p className="text-muted-foreground mt-3 max-w-2xl">Every template follows ATS rules by default so recruiters — and their software — actually read your resume.</p>
+          </div>
+          <div className="mt-10 sm:mt-12 grid sm:grid-cols-2 gap-3 sm:gap-4">
             {[
               "Single-column layout — parsers handle it correctly",
               "Standard fonts (Arial, Helvetica, Georgia)",
@@ -340,9 +381,12 @@ function Landing() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: i * 0.04 }}
-                className="flex items-start gap-2 text-sm"
+                className="flex items-start gap-3 text-sm glass rounded-lg p-3 sm:p-4 hover:border-[color:var(--color-brand)]/40 transition-colors"
               >
-                <Check className="w-4 h-4 mt-0.5 text-[color:var(--color-brand)] shrink-0" /> <span>{t}</span>
+                <div className="w-5 h-5 rounded-full bg-[color:var(--color-brand)]/15 text-[color:var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span className="leading-relaxed">{t}</span>
               </motion.div>
             ))}
           </div>
@@ -413,20 +457,34 @@ function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-white/10 bg-[color:var(--color-surface)]">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Free. Unlimited. Yours.</h2>
-          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
-          <Button size="lg" onClick={start} className="mt-8 gap-2">
-            Get started <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
+      <section className="border-t border-white/10 bg-[color:var(--color-surface)] relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0 grid-bg opacity-30" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--color-brand)_25%,transparent),transparent_60%)]" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative mx-auto max-w-4xl px-4 sm:px-6 py-20 sm:py-28 text-center"
+        >
+          <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-5">
+            <Sparkles className="w-3 h-3 text-[color:var(--color-brand)]" /> Ready when you are
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight">Free. <span className="text-gradient">Unlimited.</span> Yours.</h2>
+          <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-base sm:text-lg">Every template, every feature, unlimited resumes — no paywalls, no cards, no catch.</p>
+          <div className="mt-8 flex flex-wrap gap-3 justify-center">
+            <Button size="lg" onClick={start} className="gap-2 shadow-[0_20px_60px_-20px_color-mix(in_oklab,var(--color-brand)_55%,transparent)]">
+              Get started <ArrowRight className="w-4 h-4" />
+            </Button>
+            <Button size="lg" variant="outline" asChild><a href="#how">Learn more</a></Button>
+          </div>
+        </motion.div>
       </section>
 
       <footer className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted-foreground">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <Logo />
-          <div>© {new Date().getFullYear()} ResumeForge AI</div>
+          <div>© {new Date().getFullYear()} ResumeForge AI · Crafted by Yuvraj Singh Bundela</div>
         </div>
       </footer>
     </div>
