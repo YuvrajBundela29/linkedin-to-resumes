@@ -8,13 +8,45 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, type MotionValue } from "motion/react";
 
+const SITE_URL = "https://linkedin-to-resumes.lovable.app";
+const HOME_TITLE = "ResumeForge AI — Turn LinkedIn PDFs into ATS Resumes";
+const HOME_DESC = "Upload your LinkedIn PDF. AI builds a clean, ATS-safe resume. Edit it by chatting in plain English. Download a text-selectable PDF.";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ResumeForge AI — LinkedIn PDF to interview-ready resume in 60 seconds" },
-      { name: "description", content: "Upload your LinkedIn PDF. AI builds a clean, ATS-safe resume. Edit it by chatting in plain English. Download a text-selectable PDF." },
-      { property: "og:title", content: "ResumeForge AI" },
-      { property: "og:description", content: "Turn your LinkedIn into an interview-ready resume in 60 seconds." },
+      { title: HOME_TITLE },
+      { name: "description", content: HOME_DESC },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: HOME_DESC },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: `${SITE_URL}/` },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: HOME_TITLE },
+      { name: "twitter:description", content: HOME_DESC },
+    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "ResumeForge AI",
+              url: SITE_URL,
+              description: HOME_DESC,
+            },
+            {
+              "@type": "WebSite",
+              name: "ResumeForge AI",
+              url: SITE_URL,
+              description: HOME_DESC,
+            },
+          ],
+        }),
+      },
     ],
   }),
   component: Landing,
