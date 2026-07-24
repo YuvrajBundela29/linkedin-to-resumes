@@ -54,13 +54,28 @@ const RESUME_LINES: { kind: "h1" | "sub" | "h2" | "bold" | "text" | "space"; tex
 ];
 
 function ResumeLine({ line, index, progress }: { line: (typeof RESUME_LINES)[number]; index: number; progress: MotionValue<number> }) {
-  // Each line reveals in its own scroll window
   const total = RESUME_LINES.length;
   const start = index / total;
   const end = start + 1 / total;
   const opacity = useTransform(progress, [start, end], [0, 1]);
-  const y = useTransform(progress, [start, end], [10, 0]);
-  const clip = useTransform(progress, [start, end], ["inset(0 100% 0 0)", "inset(0 0% 0 0)"]);
+
+  // Per-kind entrance animation
+  const yShift = line.kind === "h1" ? 16 : line.kind === "h2" ? 0 : 8;
+  const xShift = line.kind === "h2" ? -18 : line.kind === "bold" ? 6 : 0;
+  const blurStart = line.kind === "text" || line.kind === "sub" ? 6 : 0;
+
+  const y = useTransform(progress, [start, end], [yShift, 0]);
+  const x = useTransform(progress, [start, end], [xShift, 0]);
+  const blur = useTransform(progress, [start, end], [blurStart, 0]);
+  const filter = useTransform(blur, (b) => `blur(${b}px)`);
+  // Typewriter reveal via clip-path from left for headings, wipe for others
+  const clip = useTransform(
+    progress,
+    [start, end],
+    line.kind === "h1" || line.kind === "h2"
+      ? ["inset(0 100% 0 0)", "inset(0 0% 0 0)"]
+      : ["inset(0 0 100% 0)", "inset(0 0 0% 0)"],
+  );
 
   if (line.kind === "space") return <div className="h-2" />;
 
@@ -76,7 +91,7 @@ function ResumeLine({ line, index, progress }: { line: (typeof RESUME_LINES)[num
       : "text-[7.5px] text-neutral-800 leading-snug";
 
   return (
-    <motion.div style={{ opacity, y, clipPath: clip }} className={cls}>
+    <motion.div style={{ opacity, y, x, filter, clipPath: clip }} className={cls}>
       {line.text}
     </motion.div>
   );
