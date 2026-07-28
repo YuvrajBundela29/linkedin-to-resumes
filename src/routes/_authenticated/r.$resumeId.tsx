@@ -25,6 +25,7 @@ import ReactMarkdown from "react-markdown";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pdf } from "@react-pdf/renderer";
+import { AtsScoreDialog, CopyPlainTextButton, TemplateGallery } from "@/components/ResumeTools";
 
 
 export const Route = createFileRoute("/_authenticated/r/$resumeId")({
@@ -182,6 +183,10 @@ function Editor() {
               </SelectContent>
             </Select>
 
+            <TemplateGallery resume={resume} template={template} onSelect={(id) => swapMut.mutate(id)} />
+            <AtsScoreDialog resume={resume} />
+            <CopyPlainTextButton resume={resume} />
+
             <Sheet onOpenChange={(open) => { if (open) versionsQ.refetch(); }}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1 px-2 sm:px-3 shrink-0">
@@ -230,7 +235,8 @@ function Editor() {
                     <h3 className="font-semibold mb-1.5">2. Change the look</h3>
                     <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                       <li>Pick a template from the dropdown, or say <em>"switch to the executive template"</em>.</li>
-                      <li>Try: Classic · Modern · Compact · Technical · Executive · Elegant · Creative.</li>
+                      <li>Try: Classic · Modern · Compact · Technical · Executive · Elegant · Creative · Onyx · Aurora · Sidebar · Minimalist · Crimson · Academic.</li>
+                      <li>Open <b>Gallery</b> to see your resume rendered live in every template.</li>
                     </ul>
                   </section>
                   <section>
@@ -243,7 +249,7 @@ function Editor() {
                   </section>
                   <section>
                     <h3 className="font-semibold mb-1.5">5. Download</h3>
-                    <p className="text-muted-foreground">Hit <b>Download PDF</b> for a text-selectable, ATS-safe file — never rasterized.</p>
+                    <p className="text-muted-foreground">Hit <b>Download PDF</b> for a text-selectable, ATS-safe file — never rasterized. Use <b>Copy text</b> for plain-text application forms, and <b>ATS score</b> to see what to fix first.</p>
                   </section>
                   <section className="rounded-md border p-3 bg-[color:var(--color-muted)]">
                     <div className="font-semibold mb-1">Pro tip</div>
