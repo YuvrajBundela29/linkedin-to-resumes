@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
+import { CreditsBadge } from "@/components/CreditsBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +34,7 @@ function TailorPage() {
         <div className="mx-auto max-w-3xl px-6 h-14 flex items-center gap-3">
           <Button variant="ghost" size="sm" asChild><Link to="/r/$resumeId" params={{ resumeId }}><ArrowLeft className="w-4 h-4" /></Link></Button>
           <Logo />
+          <CreditsBadge className="ml-auto" />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-6 py-10">
