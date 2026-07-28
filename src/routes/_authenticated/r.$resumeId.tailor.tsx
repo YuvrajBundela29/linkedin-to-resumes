@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
@@ -19,12 +19,13 @@ export const Route = createFileRoute("/_authenticated/r/$resumeId/tailor")({
 function TailorPage() {
   const { resumeId } = Route.useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const tailor = useServerFn(tailorToJobDescription);
   const [jd, setJd] = useState("");
 
   const mut = useMutation({
     mutationFn: () => tailor({ data: { resumeId, jobDescription: jd } }),
-    onSuccess: () => { qc?.invalidateQueries({ queryKey: ["credits"] }); toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId", params: { resumeId } }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["credits"] }); toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId", params: { resumeId } }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
