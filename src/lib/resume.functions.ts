@@ -56,7 +56,11 @@ export const extractResumeFromPdf = createServerFn({ method: "POST" })
       .from("resumes").select("id, user_id").eq("id", data.resumeId).single();
     if (rowErr || !row || row.user_id !== userId) throw new Error("Resume not found");
 
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "extract");
+
     const gateway = createLovableAiGateway();
+
 
     let resume: Resume;
     try {
