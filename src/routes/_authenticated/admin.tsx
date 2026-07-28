@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ResumePreview } from "@/components/ResumePreview";
 import { getAdminOverview, getResumeConversation } from "@/lib/resume.functions";
-import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye } from "lucide-react";
+import { getAdminGateStatus, unlockAdminPortal, lockAdminPortal } from "@/lib/admin-gate.functions";
+import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { TEMPLATES } from "@/templates";
 import type { TemplateId } from "@/lib/resume-schema";
@@ -36,10 +37,76 @@ function StatCard({ icon: Icon, label, value, tint }: { icon: any; label: string
   );
 }
 
+function UnlockScreen({ isAdmin, onUnlocked }: { isAdmin: boolean; onUnlocked: () => void }) {
+  const navigate = useNavigate();
+  const unlock = useServerFn(unlockAdminPortal);
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen grid place-items-center p-6 text-center">
+        <div>
+          <Shield className="w-10 h-10 mx-auto text-muted-foreground" />
+          <div className="mt-3 font-medium">Access denied</div>
+          <div className="text-sm text-muted-foreground mt-1">You don't have admin privileges.</div>
+          <Button className="mt-4" onClick={() => navigate({ to: "/dashboard" })}>Back to dashboard</Button>
+        </div>
+      </div>
+    );
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setError("");
+    try {
+      const res = await unlock({ data: { password } });
+      if (res.ok) { setPassword(""); onUnlocked(); }
+      else setError("Incorrect password.");
+    } catch {
+      setError("Could not verify the password.");
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="min-h-screen grid place-items-center p-6 relative overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,color-mix(in_oklab,var(--color-brand)_20%,transparent),transparent_60%)]" />
+      <Card className="relative w-full max-w-sm p-7 border border-white/40 bg-background/70 backdrop-blur-xl shadow-[0_25px_60px_-30px_rgba(0,0,0,0.5)]">
+        <div className="w-11 h-11 rounded-xl grid place-items-center bg-[color:var(--color-brand)]/15 text-[color:var(--color-brand)] border border-[color:var(--color-brand)]/30">
+          <Lock className="w-5 h-5" />
+        </div>
+        <h1 className="mt-4 text-xl font-semibold">Super admin portal</h1>
+        <p className="text-sm text-muted-foreground mt-1">Second factor required. Enter the admin portal password to continue.</p>
+        <form onSubmit={submit} className="mt-5 space-y-3">
+          <Input
+            type="password"
+            autoFocus
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setError(""); }}
+            placeholder="Admin portal password"
+          />
+          {error && <div className="text-xs text-red-500">{error}</div>}
+          <Button type="submit" className="w-full" disabled={busy || !password}>
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unlock"}
+          </Button>
+        </form>
+        <Button variant="ghost" size="sm" className="mt-3 w-full" onClick={() => navigate({ to: "/dashboard" })}>Back to dashboard</Button>
+      </Card>
+    </div>
+  );
+}
+
 function AdminPage() {
   const navigate = useNavigate();
+  const gateFn = useServerFn(getAdminGateStatus);
+  const lockFn = useServerFn(lockAdminPortal);
+  const gateQ = useQuery({ queryKey: ["adminGate"], queryFn: () => gateFn(), retry: false });
+  const unlocked = !!gateQ.data?.unlocked;
+
   const fn = useServerFn(getAdminOverview);
-  const q = useQuery({ queryKey: ["adminOverview"], queryFn: () => fn(), retry: false });
+  const q = useQuery({ queryKey: ["adminOverview"], queryFn: () => fn(), retry: false, enabled: unlocked });
   const [tab, setTab] = useState<"users" | "resumes" | "activity">("users");
   const [search, setSearch] = useState("");
   const [viewResumeId, setViewResumeId] = useState<string | null>(null);
@@ -50,6 +117,8 @@ function AdminPage() {
     enabled: !!viewResumeId,
   });
 
+  if (gateQ.isLoading) return <div className="min-h-screen grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>;
+  if (!unlocked) return <UnlockScreen isAdmin={!!gateQ.data?.isAdmin} onUnlocked={() => gateQ.refetch()} />;
   if (q.isLoading) return <div className="min-h-screen grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>;
   if (q.isError) {
     return (
@@ -90,6 +159,9 @@ function AdminPage() {
               <Shield className="w-3 h-3" /> Super Admin
             </div>
           </div>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => { await lockFn(); gateQ.refetch(); }}>
+            <LogOut className="w-3.5 h-3.5" /> Lock portal
+          </Button>
         </div>
       </header>
 
