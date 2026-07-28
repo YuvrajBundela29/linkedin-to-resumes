@@ -63,5 +63,8 @@ export const EMPTY_RESUME: Resume = {
   projects: [],
 };
 
-export const TEMPLATE_IDS = ["classic", "modern", "compact", "technical", "executive", "elegant", "creative"] as const;
+export const TEMPLATE_IDS = [
+  "classic", "modern", "compact", "technical", "executive", "elegant", "creative",
+  "onyx", "aurora", "sidebar", "minimalist", "crimson", "academic",
+] as const;
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
