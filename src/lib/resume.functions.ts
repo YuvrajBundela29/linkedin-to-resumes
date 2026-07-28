@@ -512,6 +512,11 @@ export const tailorToJobDescription = createServerFn({ method: "POST" })
     const { data: row, error } = await supabase.from("resumes").select("current_json, user_id").eq("id", data.resumeId).single();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
 
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "tailor");
+
+
+
     const prev = ResumeSchema.parse(row.current_json);
     await supabase.from("resume_versions").insert({
       resume_id: data.resumeId, user_id: userId, snapshot_json: prev, label: "Before tailor",
