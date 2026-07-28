@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCredits } from "@/lib/resume.functions";
 import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 export function useCreditsQuery() {
   const fn = useServerFn(getCredits);
@@ -18,7 +18,7 @@ export function CreditsBadge({ className }: { className?: string }) {
   const low = credits !== null && credits <= 5;
 
   return (
-    <Tooltip>
+    <TooltipProvider delayDuration={200}><Tooltip>
       <TooltipTrigger asChild>
         <div
           className={cn(
@@ -45,6 +45,6 @@ export function CreditsBadge({ className }: { className?: string }) {
           tailor to a job = 3, LinkedIn PDF import = 5.
         </p>
       </TooltipContent>
-    </Tooltip>
+    </Tooltip></TooltipProvider>
   );
 }
