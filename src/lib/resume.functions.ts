@@ -538,9 +538,17 @@ Return the updated resume as JSON.`,
     });
     const next = ResumeSchema.parse(object);
     await supabase.from("resumes").update({ current_json: next }).eq("id", data.resumeId);
-    await logUsage(supabase, userId, "tailor", data.resumeId);
-    return { resume: next };
+    await logUsage(supabase, userId, "tailor", data.resumeId, { credits: credits.spent });
+    return { resume: next, credits };
   });
+
+export const getCredits = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { readCredits } = await import("./credits.server");
+    return readCredits(context.supabase, context.userId);
+  });
+
 
 // ------------- Create empty resume (before upload) -------------
 export const createEmptyResume = createServerFn({ method: "POST" })
