@@ -24,7 +24,7 @@ function TailorPage() {
 
   const mut = useMutation({
     mutationFn: () => tailor({ data: { resumeId, jobDescription: jd } }),
-    onSuccess: () => { toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId", params: { resumeId } }); },
+    onSuccess: () => { qc?.invalidateQueries({ queryKey: ["credits"] }); toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId", params: { resumeId } }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
