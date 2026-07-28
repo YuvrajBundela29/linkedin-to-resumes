@@ -209,6 +209,27 @@ export type Database = {
           },
         ]
       }
+      user_credits: {
+        Row: {
+          credits: number
+          cycle_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          credits?: number
+          cycle_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          credits?: number
+          cycle_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -241,6 +262,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      spend_credits: {
+        Args: { _cost: number; _user_id: string }
+        Returns: number
       }
     }
     Enums: {

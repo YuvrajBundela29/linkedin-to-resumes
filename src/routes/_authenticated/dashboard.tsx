@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
 import { Logo } from "@/components/Logo";
+import { CreditsBadge } from "@/components/CreditsBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,12 +59,15 @@ function Dashboard() {
       });
       toast.info("Analyzing your profile…");
       await extract({ data: { resumeId: id, fileDataUrl: dataUrl, filename: file.name } });
+      qc.invalidateQueries({ queryKey: ["credits"] });
       navigate({ to: "/r/$resumeId", params: { resumeId: id } });
     } catch (e: any) {
+      qc.invalidateQueries({ queryKey: ["credits"] });
       toast.error(e.message ?? "Upload failed");
     } finally {
       setUploading(false);
     }
+
   }
 
   async function signOut() {
@@ -79,6 +83,7 @@ function Dashboard() {
         <div className="mx-auto max-w-6xl px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
           <Link to="/" className="min-w-0 shrink"><Logo className="[&>span]:hidden sm:[&>span]:inline" /></Link>
           <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
+            <CreditsBadge />
             {adminQ.data?.isAdmin && (
               <Button asChild variant="ghost" size="sm" className="text-[color:var(--color-brand)] px-2">
                 <Link to="/admin"><Shield className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Admin</span></Link>

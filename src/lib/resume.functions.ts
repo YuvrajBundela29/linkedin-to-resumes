@@ -56,7 +56,11 @@ export const extractResumeFromPdf = createServerFn({ method: "POST" })
       .from("resumes").select("id, user_id").eq("id", data.resumeId).single();
     if (rowErr || !row || row.user_id !== userId) throw new Error("Resume not found");
 
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "extract");
+
     const gateway = createLovableAiGateway();
+
 
     let resume: Resume;
     try {
@@ -102,9 +106,10 @@ export const extractResumeFromPdf = createServerFn({ method: "POST" })
       .eq("id", data.resumeId);
     if (updErr) throw new Error(updErr.message);
 
-    await logUsage(supabase, userId, "extract", data.resumeId, { filename: data.filename });
+    await logUsage(supabase, userId, "extract", data.resumeId, { filename: data.filename, credits: credits.spent });
 
-    return { resume, title };
+    return { resume, title, credits };
+
   });
 
 // ------------- Chat edit (tool-calling) -------------
@@ -158,6 +163,11 @@ export const applyChatEdit = createServerFn({ method: "POST" })
     const { data: row, error } = await supabase
       .from("resumes").select("id, user_id, current_json, template").eq("id", data.resumeId).single();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
+
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "chat_edit");
+
+
 
     const prevJson = ResumeSchema.parse(row.current_json ?? EMPTY_RESUME);
     const prevTemplate = (row.template ?? "classic") as TemplateId;
@@ -439,9 +449,10 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       meta: { changes: changeLog, template: nextTemplate },
     });
 
-    await logUsage(supabase, userId, "chat_edit", data.resumeId, { changes: changeLog });
+    await logUsage(supabase, userId, "chat_edit", data.resumeId, { changes: changeLog, credits: credits.spent });
 
-    return { resume: nextJson, reply, changes: changeLog, template: nextTemplate };
+    return { resume: nextJson, reply, changes: changeLog, template: nextTemplate, credits };
+
   });
 
 // ------------- Template switch -------------
@@ -501,6 +512,11 @@ export const tailorToJobDescription = createServerFn({ method: "POST" })
     const { data: row, error } = await supabase.from("resumes").select("current_json, user_id").eq("id", data.resumeId).single();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
 
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "tailor");
+
+
+
     const prev = ResumeSchema.parse(row.current_json);
     await supabase.from("resume_versions").insert({
       resume_id: data.resumeId, user_id: userId, snapshot_json: prev, label: "Before tailor",
@@ -522,9 +538,17 @@ Return the updated resume as JSON.`,
     });
     const next = ResumeSchema.parse(object);
     await supabase.from("resumes").update({ current_json: next }).eq("id", data.resumeId);
-    await logUsage(supabase, userId, "tailor", data.resumeId);
-    return { resume: next };
+    await logUsage(supabase, userId, "tailor", data.resumeId, { credits: credits.spent });
+    return { resume: next, credits };
   });
+
+export const getCredits = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { readCredits } = await import("./credits.server");
+    return readCredits(context.supabase, context.userId);
+  });
+
 
 // ------------- Create empty resume (before upload) -------------
 export const createEmptyResume = createServerFn({ method: "POST" })

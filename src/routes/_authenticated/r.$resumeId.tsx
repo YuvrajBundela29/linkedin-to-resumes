@@ -25,6 +25,7 @@ import ReactMarkdown from "react-markdown";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pdf } from "@react-pdf/renderer";
+import { CreditsBadge } from "@/components/CreditsBadge";
 import { AtsScoreDialog, CopyPlainTextButton, TemplateGallery } from "@/components/ResumeTools";
 
 
@@ -74,9 +75,11 @@ function Editor() {
       qc.setQueryData(["resume", resumeId], (old: any) => old ? { ...old, resume: data.resume, template: data.template ?? old.template } : old);
       qc.invalidateQueries({ queryKey: ["versions", resumeId] });
       qc.invalidateQueries({ queryKey: ["chat", resumeId] });
+      qc.invalidateQueries({ queryKey: ["credits"] });
       setMessages((m) => [...m, { role: "assistant", text: data.reply || "Done." }]);
     },
     onError: (e: Error) => {
+      qc.invalidateQueries({ queryKey: ["credits"] });
       setMessages((m) => [...m, { role: "assistant", text: `⚠ ${e.message}` }]);
       toast.error(e.message);
     },
@@ -183,6 +186,7 @@ function Editor() {
               </SelectContent>
             </Select>
 
+            <CreditsBadge />
             <TemplateGallery resume={resume} template={template} onSelect={(id) => swapMut.mutate(id)} />
             <AtsScoreDialog resume={resume} />
             <CopyPlainTextButton resume={resume} />

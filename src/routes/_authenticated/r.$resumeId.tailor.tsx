@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
+import { CreditsBadge } from "@/components/CreditsBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,12 +19,13 @@ export const Route = createFileRoute("/_authenticated/r/$resumeId/tailor")({
 function TailorPage() {
   const { resumeId } = Route.useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const tailor = useServerFn(tailorToJobDescription);
   const [jd, setJd] = useState("");
 
   const mut = useMutation({
     mutationFn: () => tailor({ data: { resumeId, jobDescription: jd } }),
-    onSuccess: () => { toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId", params: { resumeId } }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["credits"] }); toast.success("Resume tailored. Review your changes."); navigate({ to: "/r/$resumeId", params: { resumeId } }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -33,6 +35,7 @@ function TailorPage() {
         <div className="mx-auto max-w-3xl px-6 h-14 flex items-center gap-3">
           <Button variant="ghost" size="sm" asChild><Link to="/r/$resumeId" params={{ resumeId }}><ArrowLeft className="w-4 h-4" /></Link></Button>
           <Logo />
+          <CreditsBadge className="ml-auto" />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-6 py-10">
