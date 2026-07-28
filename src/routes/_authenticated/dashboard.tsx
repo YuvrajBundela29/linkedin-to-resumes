@@ -59,12 +59,15 @@ function Dashboard() {
       });
       toast.info("Analyzing your profile…");
       await extract({ data: { resumeId: id, fileDataUrl: dataUrl, filename: file.name } });
+      qc.invalidateQueries({ queryKey: ["credits"] });
       navigate({ to: "/r/$resumeId", params: { resumeId: id } });
     } catch (e: any) {
+      qc.invalidateQueries({ queryKey: ["credits"] });
       toast.error(e.message ?? "Upload failed");
     } finally {
       setUploading(false);
     }
+
   }
 
   async function signOut() {
