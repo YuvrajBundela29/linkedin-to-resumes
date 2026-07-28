@@ -106,9 +106,10 @@ export const extractResumeFromPdf = createServerFn({ method: "POST" })
       .eq("id", data.resumeId);
     if (updErr) throw new Error(updErr.message);
 
-    await logUsage(supabase, userId, "extract", data.resumeId, { filename: data.filename });
+    await logUsage(supabase, userId, "extract", data.resumeId, { filename: data.filename, credits: credits.spent });
 
-    return { resume, title };
+    return { resume, title, credits };
+
   });
 
 // ------------- Chat edit (tool-calling) -------------
