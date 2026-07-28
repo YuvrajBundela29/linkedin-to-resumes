@@ -164,6 +164,11 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       .from("resumes").select("id, user_id, current_json, template").eq("id", data.resumeId).single();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
 
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "chat_edit");
+
+
+
     const prevJson = ResumeSchema.parse(row.current_json ?? EMPTY_RESUME);
     const prevTemplate = (row.template ?? "classic") as TemplateId;
     // Snapshot previous state (trigger keeps last 5)
