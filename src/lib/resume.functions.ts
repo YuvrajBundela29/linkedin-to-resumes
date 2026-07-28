@@ -449,9 +449,10 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       meta: { changes: changeLog, template: nextTemplate },
     });
 
-    await logUsage(supabase, userId, "chat_edit", data.resumeId, { changes: changeLog });
+    await logUsage(supabase, userId, "chat_edit", data.resumeId, { changes: changeLog, credits: credits.spent });
 
-    return { resume: nextJson, reply, changes: changeLog, template: nextTemplate };
+    return { resume: nextJson, reply, changes: changeLog, template: nextTemplate, credits };
+
   });
 
 // ------------- Template switch -------------
