@@ -13,6 +13,18 @@ import { ElegantHtml } from "./elegant/Html";
 import { ElegantPdf } from "./elegant/Pdf";
 import { CreativeHtml } from "./creative/Html";
 import { CreativePdf } from "./creative/Pdf";
+import { GenericHtml, type GenericVariant } from "./generic/Html";
+import { GenericPdf } from "./generic/Pdf";
+
+// New enhanced templates built on one shared, ATS-safe layout engine.
+const GENERIC: Record<string, { accent: string; variant: GenericVariant }> = {
+  onyx:       { accent: "#0b1220", variant: "band" },
+  aurora:     { accent: "#4338ca", variant: "band" },
+  sidebar:    { accent: "#0f172a", variant: "sidebar" },
+  minimalist: { accent: "#111827", variant: "line" },
+  crimson:    { accent: "#b91c1c", variant: "line" },
+  academic:   { accent: "#1f3a5f", variant: "serif" },
+};
 
 export type TemplateMeta = {
   id: TemplateId;
@@ -30,6 +42,12 @@ export const TEMPLATES: Record<TemplateId, TemplateMeta> = {
   executive: { id: "executive", name: "Executive", description: "Serif, centered header, navy accent.",tier: "pro",  accent: "#0f2a4a" },
   elegant:   { id: "elegant",   name: "Elegant",   description: "Emerald accent bar, refined.",        tier: "pro",  accent: "#0f766e" },
   creative:  { id: "creative",  name: "Creative",  description: "Bold coral header band.",             tier: "pro",  accent: "#dc5c3a" },
+  onyx:      { id: "onyx",      name: "Onyx",      description: "Dark obsidian header band, high contrast.", tier: "pro", accent: "#0b1220" },
+  aurora:    { id: "aurora",    name: "Aurora",    description: "Indigo band, modern product-design feel.",  tier: "pro", accent: "#4338ca" },
+  sidebar:   { id: "sidebar",   name: "Sidebar",   description: "Two-column with skills rail — recruiter scannable.", tier: "pro", accent: "#0f172a" },
+  minimalist:{ id: "minimalist",name: "Minimalist",description: "Hairline rules, maximum whitespace.",       tier: "pro", accent: "#111827" },
+  crimson:   { id: "crimson",   name: "Crimson",   description: "Restrained red accents, confident.",        tier: "pro", accent: "#b91c1c" },
+  academic:  { id: "academic",  name: "Academic",  description: "Serif, centered — research & CV friendly.", tier: "pro", accent: "#1f3a5f" },
 };
 
 export function HtmlFor({ template, resume }: { template: TemplateId; resume: Resume }) {
@@ -40,6 +58,8 @@ export function HtmlFor({ template, resume }: { template: TemplateId; resume: Re
     case "executive": return <ExecutiveHtml resume={resume} />;
     case "elegant":   return <ElegantHtml resume={resume} />;
     case "creative":  return <CreativeHtml resume={resume} />;
+    case "onyx": case "aurora": case "sidebar": case "minimalist": case "crimson": case "academic":
+      return <GenericHtml resume={resume} accent={GENERIC[template].accent} variant={GENERIC[template].variant} dark={template === "onyx"} />;
     case "classic":
     default:          return <ClassicHtml resume={resume} />;
   }
@@ -53,6 +73,8 @@ export function PdfDocumentFor({ template, resume }: { template: TemplateId; res
     case "executive": return <ExecutivePdf resume={resume} />;
     case "elegant":   return <ElegantPdf resume={resume} />;
     case "creative":  return <CreativePdf resume={resume} />;
+    case "onyx": case "aurora": case "sidebar": case "minimalist": case "crimson": case "academic":
+      return <GenericPdf resume={resume} accent={GENERIC[template].accent} variant={GENERIC[template].variant} />;
     case "classic":
     default:          return <ClassicPdf resume={resume} />;
   }

@@ -597,6 +597,9 @@ export const getAccountSummary = createServerFn({ method: "GET" })
 async function assertAdmin(supabase: any, userId: string) {
   const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
   if (error || !data) throw new Error("Forbidden");
+  // Second factor: the admin portal password must have been entered in this session.
+  const { requireAdminUnlocked } = await import("./admin-gate.server");
+  await requireAdminUnlocked(userId);
 }
 
 export const getIsAdmin = createServerFn({ method: "GET" })
