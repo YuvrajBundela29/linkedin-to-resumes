@@ -157,8 +157,9 @@ function Editor() {
   if (rQ.isError || !rQ.data) return <div className="min-h-screen grid place-items-center text-muted-foreground">Couldn't load this resume.</div>;
 
   const { resume, template, title } = rQ.data;
-  const docType = (rQ.data as any).docType ?? "resume";
+  const docType: DocType = (rQ.data as any).docType ?? "resume";
   const templateOptions = templatesForDocType(docType);
+
 
 
   return (
