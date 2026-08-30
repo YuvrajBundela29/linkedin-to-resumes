@@ -67,18 +67,22 @@ function loadRazorpayScript() {
 function useCountdown() {
   const [left, setLeft] = useState(() => 0);
   useEffect(() => {
-    const end = new Date();
-    end.setUTCHours(24, 0, 0, 0);
+    const now = new Date();
+    // Free credits refresh on the 1st of each month at 00:00 UTC.
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
     const tick = () => setLeft(Math.max(0, end.getTime() - Date.now()));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
-  const h = Math.floor(left / 3_600_000);
+  const d = Math.floor(left / 86_400_000);
+  const h = Math.floor((left % 86_400_000) / 3_600_000);
   const m = Math.floor((left % 3_600_000) / 60_000);
   const s = Math.floor((left % 60_000) / 1000);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const clock = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return d > 0 ? `${d}d ${clock}` : clock;
 }
+
 
 function PackCard({
   pack,
