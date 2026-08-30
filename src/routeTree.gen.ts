@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogHowToExportLinkedinToResumeRouteImport } from './routes/blog.how-to-export-linkedin-to-resume'
+import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
@@ -46,6 +47,11 @@ const BlogHowToExportLinkedinToResumeRoute =
     path: '/blog/how-to-export-linkedin-to-resume',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/how-to-export-linkedin-to-resume': typeof BlogHowToExportLinkedinToResumeRoute
   '/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
   '/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/how-to-export-linkedin-to-resume': typeof BlogHowToExportLinkedinToResumeRoute
   '/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
   '/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/how-to-export-linkedin-to-resume': typeof BlogHowToExportLinkedinToResumeRoute
   '/_authenticated/r/$resumeId': typeof AuthenticatedRResumeIdRouteWithChildren
   '/_authenticated/r/$resumeId/tailor': typeof AuthenticatedRResumeIdTailorRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/dashboard'
+    | '/upgrade'
     | '/blog/how-to-export-linkedin-to-resume'
     | '/r/$resumeId'
     | '/r/$resumeId/tailor'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/dashboard'
+    | '/upgrade'
     | '/blog/how-to-export-linkedin-to-resume'
     | '/r/$resumeId'
     | '/r/$resumeId/tailor'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/upgrade'
     | '/blog/how-to-export-linkedin-to-resume'
     | '/_authenticated/r/$resumeId'
     | '/_authenticated/r/$resumeId/tailor'
@@ -201,6 +213,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/how-to-export-linkedin-to-resume'
       preLoaderRoute: typeof BlogHowToExportLinkedinToResumeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/upgrade': {
+      id: '/_authenticated/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -265,6 +284,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedRResumeIdRoute: typeof AuthenticatedRResumeIdRouteWithChildren
 }
 
@@ -272,6 +292,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedRResumeIdRoute: AuthenticatedRResumeIdRouteWithChildren,
 }
 
