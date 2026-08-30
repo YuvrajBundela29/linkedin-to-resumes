@@ -3,7 +3,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, generateObject, tool, stepCountIs, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { createLovableAiGateway, DEFAULT_MODEL } from "./ai-gateway.server";
-import { ResumeSchema, EMPTY_RESUME, TEMPLATE_IDS, type Resume, type TemplateId } from "./resume-schema";
+import {
+  ResumeSchema, EMPTY_RESUME, TEMPLATE_IDS, DOC_TYPES, defaultTemplateForDocType,
+  type Resume, type TemplateId, type DocType,
+} from "./resume-schema";
+
 
 async function logUsage(
   supabase: any,
