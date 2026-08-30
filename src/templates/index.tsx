@@ -64,8 +64,11 @@ export function HtmlFor({ template, resume }: { template: TemplateId; resume: Re
     case "executive": return <ExecutiveHtml resume={resume} />;
     case "elegant":   return <ElegantHtml resume={resume} />;
     case "creative":  return <CreativeHtml resume={resume} />;
+    case "cv_standard": return <CvHtml resume={resume} variant="standard" />;
+    case "cv_academic": return <CvHtml resume={resume} variant="academic" />;
     case "onyx": case "aurora": case "sidebar": case "minimalist": case "crimson": case "academic":
       return <GenericHtml resume={resume} accent={GENERIC[template].accent} variant={GENERIC[template].variant} dark={template === "onyx"} />;
+
     case "classic":
     default:          return <ClassicHtml resume={resume} />;
   }
@@ -79,8 +82,11 @@ export function PdfDocumentFor({ template, resume }: { template: TemplateId; res
     case "executive": return <ExecutivePdf resume={resume} />;
     case "elegant":   return <ElegantPdf resume={resume} />;
     case "creative":  return <CreativePdf resume={resume} />;
+    case "cv_standard": return <CvPdf resume={resume} variant="standard" />;
+    case "cv_academic": return <CvPdf resume={resume} variant="academic" />;
     case "onyx": case "aurora": case "sidebar": case "minimalist": case "crimson": case "academic":
       return <GenericPdf resume={resume} accent={GENERIC[template].accent} variant={GENERIC[template].variant} />;
+
     case "classic":
     default:          return <ClassicPdf resume={resume} />;
   }
