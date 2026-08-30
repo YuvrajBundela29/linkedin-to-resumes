@@ -10,7 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ResumePreview } from "@/components/ResumePreview";
 import { getAdminOverview, getResumeConversation } from "@/lib/resume.functions";
 import { getAdminGateStatus, unlockAdminPortal, lockAdminPortal } from "@/lib/admin-gate.functions";
-import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut } from "lucide-react";
+import { getRevenueOverview } from "@/lib/payments.functions";
+import { formatINR } from "@/lib/pricing";
+import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut, IndianRupee, Tag } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { TEMPLATES } from "@/templates";
 import type { TemplateId } from "@/lib/resume-schema";
@@ -107,7 +109,9 @@ function AdminPage() {
 
   const fn = useServerFn(getAdminOverview);
   const q = useQuery({ queryKey: ["adminOverview"], queryFn: () => fn(), retry: false, enabled: unlocked });
-  const [tab, setTab] = useState<"users" | "resumes" | "activity">("users");
+  const revFn = useServerFn(getRevenueOverview);
+  const revQ = useQuery({ queryKey: ["adminRevenue"], queryFn: () => revFn(), retry: false, enabled: unlocked });
+  const [tab, setTab] = useState<"users" | "resumes" | "activity" | "revenue">("users");
   const [search, setSearch] = useState("");
   const [viewResumeId, setViewResumeId] = useState<string | null>(null);
   const getConv = useServerFn(getResumeConversation);
@@ -169,20 +173,26 @@ function AdminPage() {
         <h1 className="text-4xl font-semibold tracking-tight">Command center</h1>
         <p className="text-muted-foreground mt-2">Every user, every resume, every action — all in one place.</p>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard icon={Users} label="Total users" value={data.totals.users} tint="linear-gradient(135deg,#3b82f6,#6366f1)" />
           <StatCard icon={FileText} label="Total resumes" value={data.totals.resumes} tint="linear-gradient(135deg,#10b981,#059669)" />
           <StatCard icon={Activity} label="Active in last 24h" value={data.totals.activeUsers24h} tint="linear-gradient(135deg,#f97316,#ef4444)" />
+          <StatCard
+            icon={IndianRupee}
+            label="Revenue (all time)"
+            value={revQ.data ? formatINR(revQ.data.totals.revenuePaise) : "—"}
+            tint="linear-gradient(135deg,#a855f7,#ec4899)"
+          />
         </div>
 
         <div className="mt-10 flex flex-wrap items-center gap-2">
-          {(["users","resumes","activity"] as const).map((t) => (
+          {(["users","resumes","activity","revenue"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-all ${tab === t ? "bg-foreground text-background shadow-lg" : "bg-background/60 border hover:bg-[color:var(--color-accent)]"}`}
             >
-              {t} {t !== "activity" && `(${t === "users" ? data.users.length : data.resumes.length})`}
+              {t} {(t === "users" || t === "resumes") && `(${t === "users" ? data.users.length : data.resumes.length})`}
             </button>
           ))}
           <div className="ml-auto relative">
@@ -254,6 +264,69 @@ function AdminPage() {
                 );
               })}
               {data.usage.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No activity yet.</div>}
+            </div>
+          )}
+          {tab === "revenue" && (
+            <div>
+              {revQ.isLoading ? (
+                <div className="p-10 grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>
+              ) : revQ.isError || !revQ.data ? (
+                <div className="p-10 text-center text-sm text-muted-foreground">Revenue data unavailable.</div>
+              ) : (
+                <div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-6 border-b">
+                    {[
+                      { label: "This month", value: formatINR(revQ.data.totals.revenueMonthPaise) },
+                      { label: "Paid orders", value: String(revQ.data.totals.paidOrders) },
+                      { label: "Credits sold", value: revQ.data.totals.creditsSold.toLocaleString("en-IN") },
+                      { label: "Discounts given", value: formatINR(revQ.data.totals.discountsPaise) },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-xl border bg-[color:var(--color-surface)]/50 p-4">
+                        <div className="text-xs uppercase tracking-wider text-muted-foreground">{s.label}</div>
+                        <div className="mt-1 text-2xl font-semibold tabular-nums">{s.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="px-6 py-4 text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                    <Tag className="w-3.5 h-3.5" /> Promo codes
+                  </div>
+                  <div className="px-6 pb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {revQ.data.promos.map((p: any) => (
+                      <div key={p.code} className="rounded-xl border p-4 bg-background/50">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono font-medium tracking-wider">{p.code}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)]">{p.percent_off}% off</span>
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground">{p.label}</div>
+                        <div className="mt-2 text-[11px] text-muted-foreground">
+                          Redeemed {p.times_redeemed}{p.max_redemptions ? ` / ${p.max_redemptions}` : ""}
+                          {p.expires_at ? ` · expires ${new Date(p.expires_at).toLocaleDateString()}` : " · no expiry"}
+                          {!p.active && " · inactive"}
+                        </div>
+                      </div>
+                    ))}
+                    {revQ.data.promos.length === 0 && <div className="text-sm text-muted-foreground">No promo codes.</div>}
+                  </div>
+
+                  <div className="divide-y border-t max-h-[500px] overflow-auto">
+                    <div className="grid grid-cols-[160px_1fr_110px_110px_100px_90px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground bg-[color:var(--color-surface)]/60 sticky top-0">
+                      <div>When</div><div>User</div><div>Pack</div><div>Credits</div><div>Amount</div><div>Status</div>
+                    </div>
+                    {revQ.data.orders.map((o: any) => (
+                      <div key={o.id} className="grid grid-cols-[160px_1fr_110px_110px_100px_90px] gap-4 px-6 py-2.5 items-center text-sm hover:bg-[color:var(--color-accent)]/40">
+                        <div className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground truncate">{userMap.get(o.user_id)?.email ?? o.user_id.slice(0, 8)}</div>
+                        <div className="text-xs capitalize">{o.pack_id}</div>
+                        <div className="text-xs tabular-nums">{o.credits}</div>
+                        <div className="text-xs tabular-nums">{formatINR(o.amount_paise)}</div>
+                        <div className={`text-xs capitalize ${o.status === "paid" ? "text-emerald-500" : "text-muted-foreground"}`}>{o.status}</div>
+                      </div>
+                    ))}
+                    {revQ.data.orders.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No orders yet.</div>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </Card>

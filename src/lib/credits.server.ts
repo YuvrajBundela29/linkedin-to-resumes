@@ -1,4 +1,4 @@
-export const DAILY_CREDITS = 50;
+export const DAILY_CREDITS = 20;
 
 export const CREDIT_COSTS = {
   extract: 5,
@@ -11,7 +11,7 @@ export type CreditAction = keyof typeof CREDIT_COSTS;
 export class InsufficientCreditsError extends Error {
   constructor(cost: number) {
     super(
-      `You don't have enough credits for this action (needs ${cost}). Your ${DAILY_CREDITS} daily credits refresh at 00:00 UTC.`,
+      `You don't have enough credits for this action (needs ${cost}). Your ${DAILY_CREDITS} daily credits refresh at 00:00 UTC — or top up instantly from the credit store.`,
     );
     this.name = "InsufficientCreditsError";
   }
@@ -37,18 +37,21 @@ export async function readCredits(supabase: any, userId: string) {
   const today = new Date().toISOString().slice(0, 10);
   const { data } = await supabase
     .from("user_credits")
-    .select("credits, cycle_date")
+    .select("credits, cycle_date, purchased_credits")
     .eq("user_id", userId)
     .maybeSingle();
 
   const stale = !data || data.cycle_date < today;
-  const credits = stale ? DAILY_CREDITS : (data.credits as number);
+  const daily = stale ? DAILY_CREDITS : (data.credits as number);
+  const purchased = (data?.purchased_credits as number) ?? 0;
 
   const resets = new Date();
   resets.setUTCHours(24, 0, 0, 0);
 
   return {
-    credits,
+    credits: daily + purchased,
+    daily,
+    purchased,
     dailyAllowance: DAILY_CREDITS,
     resetsAt: resets.toISOString(),
     costs: CREDIT_COSTS as Record<string, number>,
