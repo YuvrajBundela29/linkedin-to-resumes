@@ -69,10 +69,11 @@ export function CopyPlainTextButton({ resume }: { resume: Resume }) {
 }
 
 export function TemplateGallery({
-  resume, template, onSelect,
-}: { resume: Resume; template: TemplateId; onSelect: (id: TemplateId) => void }) {
+  resume, template, onSelect, allowed,
+}: { resume: Resume; template: TemplateId; onSelect: (id: TemplateId) => void; allowed?: TemplateId[] }) {
   const [open, setOpen] = useState(false);
-  const ids = Object.keys(TEMPLATES) as TemplateId[];
+  const ids = allowed ?? (Object.keys(TEMPLATES) as TemplateId[]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
