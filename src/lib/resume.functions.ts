@@ -688,8 +688,9 @@ export const getResume = createServerFn({ method: "GET" })
   .inputValidator((i: unknown) => z.object({ resumeId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: row, error } = await supabase.from("resumes").select("*").eq("id", data.resumeId).eq("user_id", userId).single();
+    const { data: row, error } = await supabase.from("resumes").select("*").eq("id", data.resumeId).eq("user_id", userId).maybeSingle();
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("Document not found");
     return {
       id: row.id as string,
       title: row.title as string,
