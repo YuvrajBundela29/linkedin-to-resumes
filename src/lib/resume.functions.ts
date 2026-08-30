@@ -661,14 +661,24 @@ export const getCredits = createServerFn({ method: "GET" })
 // ------------- Create empty resume (before upload) -------------
 export const createEmptyResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z.object({ docType: z.enum(DOC_TYPES).optional() }).optional().parse(i ?? {}))
+  .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const docType: DocType = data?.docType ?? "resume";
     const { data: row, error } = await supabase.from("resumes")
-      .insert({ user_id: userId, current_json: EMPTY_RESUME as any, title: "Untitled resume" })
+      .insert({
+        user_id: userId,
+        current_json: EMPTY_RESUME as any,
+        title: `Untitled ${TITLE_SUFFIX[docType]}`,
+        doc_type: docType,
+        template: defaultTemplateForDocType(docType),
+      })
       .select("id").single();
     if (error) throw new Error(error.message);
-    return { id: row.id as string };
+    return { id: row.id as string, docType };
   });
+
 
 
 export const getResume = createServerFn({ method: "GET" })
