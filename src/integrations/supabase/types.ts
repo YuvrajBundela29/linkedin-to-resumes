@@ -52,6 +52,51 @@ export type Database = {
           },
         ]
       }
+      credit_orders: {
+        Row: {
+          amount_paise: number
+          created_at: string
+          credits: number
+          discount_paise: number
+          id: string
+          pack_id: string
+          paid_at: string | null
+          promo_code: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_paise: number
+          created_at?: string
+          credits: number
+          discount_paise?: number
+          id?: string
+          pack_id: string
+          paid_at?: string | null
+          promo_code?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_paise?: number
+          created_at?: string
+          credits?: number
+          discount_paise?: number
+          id?: string
+          pack_id?: string
+          paid_at?: string | null
+          promo_code?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       entitlements: {
         Row: {
           allowed_templates: string[]
@@ -100,6 +145,39 @@ export type Database = {
           id?: string
           plan?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      promo_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          expires_at: string | null
+          label: string
+          max_redemptions: number | null
+          percent_off: number
+          times_redeemed: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          label?: string
+          max_redemptions?: number | null
+          percent_off: number
+          times_redeemed?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          label?: string
+          max_redemptions?: number | null
+          percent_off?: number
+          times_redeemed?: number
         }
         Relationships: []
       }
@@ -216,18 +294,21 @@ export type Database = {
         Row: {
           credits: number
           cycle_date: string
+          purchased_credits: number
           updated_at: string
           user_id: string
         }
         Insert: {
           credits?: number
           cycle_date?: string
+          purchased_credits?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           credits?: number
           cycle_date?: string
+          purchased_credits?: number
           updated_at?: string
           user_id?: string
         }
@@ -259,6 +340,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_purchased_credits: {
+        Args: { _credits: number; _user_id: string }
+        Returns: number
+      }
+      get_credits: {
+        Args: { _user_id: string }
+        Returns: {
+          credits: number
+          daily_allowance: number
+          purchased: number
+          resets_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
