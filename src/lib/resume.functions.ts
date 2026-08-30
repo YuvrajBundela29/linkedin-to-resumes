@@ -76,76 +76,149 @@ const ExtractInput = z.object({
   filename: z.string().optional(),
 });
 
+const TITLE_SUFFIX: Record<DocType, string> = {
+  resume: "Resume",
+  cv_professional: "CV",
+  cv_academic: "Academic CV",
+};
+
+function friendlyAiError(err: unknown, what: string): Error {
+  if (NoObjectGeneratedError.isInstance(err)) {
+    return new Error(`The AI couldn't structure this ${what}. Try a different source or paste your details as text.`);
+  }
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes("429")) return new Error("Rate limit — please try again in a moment.");
+  if (msg.includes("402")) return new Error("Out of AI credits — please add more to continue.");
+  return new Error(`Extraction failed: ${msg}`);
+}
+
+async function runExtraction(opts: {
+  docType: DocType;
+  source: "pdf" | "text";
+  fileDataUrl?: string;
+  text?: string;
+}): Promise<Resume> {
+  const gateway = createLovableAiGateway();
+  const prompt = extractPrompt(opts.docType, opts.source);
+  const content: any[] = [{ type: "text", text: prompt }];
+  if (opts.source === "pdf") {
+    content.push({ type: "file", data: opts.fileDataUrl, mediaType: "application/pdf" });
+  } else {
+    content.push({ type: "text", text: `SOURCE_TEXT:\n${opts.text}` });
+  }
+
+  try {
+    const { object } = await generateObject({
+      model: gateway(DEFAULT_MODEL),
+      schema: ResumeSchema,
+      messages: [{ role: "user", content }],
+    });
+    return ResumeSchema.parse(object);
+  } catch (err: unknown) {
+    if (NoObjectGeneratedError.isInstance(err)) {
+      try {
+        const cleaned = (err.text || "").replace(/```json|```/g, "").trim();
+        return ResumeSchema.parse(JSON.parse(cleaned));
+      } catch {
+        throw friendlyAiError(err, opts.docType === "resume" ? "resume" : "CV");
+      }
+    }
+    throw friendlyAiError(err, opts.docType === "resume" ? "resume" : "CV");
+  }
+}
+
+async function loadOwnedRow(supabase: any, userId: string, resumeId: string) {
+  const { data: row, error } = await supabase
+    .from("resumes").select("id, user_id, doc_type").eq("id", resumeId).single();
+  if (error || !row || row.user_id !== userId) throw new Error("Document not found");
+  return row;
+}
+
+async function saveExtraction(
+  supabase: any, userId: string, resumeId: string, docType: DocType, resume: Resume,
+  kind: string, meta: Record<string, unknown>,
+) {
+  const title = resume.name ? `${resume.name} — ${TITLE_SUFFIX[docType]}` : `Untitled ${TITLE_SUFFIX[docType]}`;
+  const { error } = await supabase.from("resumes").update({ current_json: resume, title }).eq("id", resumeId);
+  if (error) throw new Error(error.message);
+  await logUsage(supabase, userId, kind, resumeId, meta);
+  return title;
+}
+
 /**
  * Upload a LinkedIn PDF, run extraction, save into resumes.current_json.
- * Client creates the resume row (empty) then calls this with the base64 PDF.
+ * Client creates the document row (empty) then calls this with the base64 PDF.
  */
 export const extractResumeFromPdf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ExtractInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-
-    // Verify resume ownership
-    const { data: row, error: rowErr } = await supabase
-      .from("resumes").select("id, user_id").eq("id", data.resumeId).single();
-    if (rowErr || !row || row.user_id !== userId) throw new Error("Resume not found");
+    const row = await loadOwnedRow(supabase, userId, data.resumeId);
+    const docType = ((row.doc_type as DocType) ?? "resume");
 
     const { spendCredits } = await import("./credits.server");
     const credits = await spendCredits(userId, "extract");
 
-    const gateway = createLovableAiGateway();
-
-
-    let resume: Resume;
-    try {
-      const { object } = await generateObject({
-        model: gateway(DEFAULT_MODEL),
-        schema: ResumeSchema,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: EXTRACT_PROMPT },
-              {
-                type: "file",
-                data: data.fileDataUrl,
-                mediaType: "application/pdf",
-              } as any,
-            ],
-          },
-        ],
-      });
-      resume = ResumeSchema.parse(object);
-    } catch (err: unknown) {
-      // Fallback: try parsing the raw text response
-      if (NoObjectGeneratedError.isInstance(err)) {
-        try {
-          const cleaned = (err.text || "").replace(/```json|```/g, "").trim();
-          resume = ResumeSchema.parse(JSON.parse(cleaned));
-        } catch {
-          throw new Error("The AI couldn't structure this resume. Please try a different PDF.");
-        }
-      } else {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes("429")) throw new Error("Rate limit — please try again in a moment.");
-        if (msg.includes("402")) throw new Error("Out of AI credits — please add more to continue.");
-        throw new Error(`Extraction failed: ${msg}`);
-      }
-    }
-
-    // Save
-    const title = resume.name ? `${resume.name} — Resume` : "Untitled resume";
-    const { error: updErr } = await supabase.from("resumes")
-      .update({ current_json: resume, title })
-      .eq("id", data.resumeId);
-    if (updErr) throw new Error(updErr.message);
-
-    await logUsage(supabase, userId, "extract", data.resumeId, { filename: data.filename, credits: credits.spent });
+    const resume = await runExtraction({ docType, source: "pdf", fileDataUrl: data.fileDataUrl });
+    const title = await saveExtraction(supabase, userId, data.resumeId, docType, resume, "extract", {
+      filename: data.filename, credits: credits.spent, doc_type: docType, source: "pdf",
+    });
 
     return { resume, title, credits };
-
   });
+
+// ------------- Import from pasted profile text -------------
+export const importFromText = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ resumeId: z.string().uuid(), text: z.string().min(80) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const row = await loadOwnedRow(supabase, userId, data.resumeId);
+    const docType = ((row.doc_type as DocType) ?? "resume");
+
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "extract");
+
+    const resume = await runExtraction({ docType, source: "text", text: data.text.slice(0, 40000) });
+    const title = await saveExtraction(supabase, userId, data.resumeId, docType, resume, "extract", {
+      credits: credits.spent, doc_type: docType, source: "text",
+    });
+
+    return { resume, title, credits };
+  });
+
+// ------------- Import from a LinkedIn profile URL -------------
+export const importFromProfileUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ resumeId: z.string().uuid(), url: z.string().min(8) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const row = await loadOwnedRow(supabase, userId, data.resumeId);
+    const docType = ((row.doc_type as DocType) ?? "resume");
+
+    const { scrapeProfileMarkdown, ScrapeUnavailableError } = await import("./linkedin-scrape.server");
+    let markdown: string;
+    try {
+      markdown = await scrapeProfileMarkdown(data.url);
+    } catch (err) {
+      if (err instanceof ScrapeUnavailableError) throw new Error(err.message);
+      throw new Error("Couldn't read that URL. Upload your PDF export or paste your profile text instead.");
+    }
+
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "extract");
+
+    const resume = await runExtraction({ docType, source: "text", text: markdown });
+    const title = await saveExtraction(supabase, userId, data.resumeId, docType, resume, "extract", {
+      credits: credits.spent, doc_type: docType, source: "url", url: data.url,
+    });
+
+    return { resume, title, credits };
+  });
+
 
 // ------------- Chat edit (tool-calling) -------------
 
