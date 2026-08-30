@@ -16,7 +16,7 @@ import {
   getResume, applyChatEdit, switchTemplate, listVersions, rollbackVersion, listChatMessages,
 } from "@/lib/resume.functions";
 import { TEMPLATES, PdfDocumentFor } from "@/templates";
-import { TEMPLATE_IDS, type TemplateId } from "@/lib/resume-schema";
+import { templatesForDocType, DOC_TYPE_META, type TemplateId, type DocType } from "@/lib/resume-schema";
 import { toast } from "sonner";
 import {
   ArrowLeft, Download, History, Loader2, Send, Sparkles, Target, HelpCircle,
@@ -157,6 +157,10 @@ function Editor() {
   if (rQ.isError || !rQ.data) return <div className="min-h-screen grid place-items-center text-muted-foreground">Couldn't load this resume.</div>;
 
   const { resume, template, title } = rQ.data;
+  const docType: DocType = (rQ.data as any).docType ?? "resume";
+  const templateOptions = templatesForDocType(docType);
+
+
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
@@ -167,15 +171,19 @@ function Editor() {
             <Button variant="ghost" size="sm" asChild className="shrink-0"><Link to="/dashboard"><ArrowLeft className="w-4 h-4" /></Link></Button>
             <div className="flex items-center gap-2 min-w-0">
               <Logo className="hidden lg:inline-flex shrink-0" />
+              <span className="shrink-0 rounded-full border border-[color:var(--color-brand)]/40 bg-[color:var(--color-brand)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-brand)]">
+                {DOC_TYPE_META[docType].short}
+              </span>
               <div className="text-sm text-muted-foreground truncate min-w-0">/ {title}</div>
             </div>
+
           </div>
           <div className="min-w-0 overflow-x-auto pb-1 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex w-max min-w-full items-center gap-1.5 sm:gap-2 md:min-w-0 md:justify-end">
             <Select value={template} onValueChange={(v) => swapMut.mutate(v as TemplateId)}>
               <SelectTrigger className="w-[128px] sm:w-[180px] h-9 shrink-0"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {TEMPLATE_IDS.map((id) => (
+                {templateOptions.map((id) => (
                   <SelectItem key={id} value={id}>
                     <span className="inline-flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full" style={{ background: TEMPLATES[id].accent }} />
@@ -187,7 +195,7 @@ function Editor() {
             </Select>
 
             <CreditsBadge />
-            <TemplateGallery resume={resume} template={template} onSelect={(id) => swapMut.mutate(id)} />
+            <TemplateGallery resume={resume} template={template} onSelect={(id) => swapMut.mutate(id)} allowed={templateOptions} />
             <AtsScoreDialog resume={resume} />
             <CopyPlainTextButton resume={resume} />
 

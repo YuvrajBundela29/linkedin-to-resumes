@@ -3,7 +3,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, generateObject, tool, stepCountIs, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { createLovableAiGateway, DEFAULT_MODEL } from "./ai-gateway.server";
-import { ResumeSchema, EMPTY_RESUME, TEMPLATE_IDS, type Resume, type TemplateId } from "./resume-schema";
+import {
+  ResumeSchema, EMPTY_RESUME, TEMPLATE_IDS, DOC_TYPES, defaultTemplateForDocType,
+  type Resume, type TemplateId, type DocType,
+} from "./resume-schema";
+
 
 async function logUsage(
   supabase: any,
@@ -24,16 +28,47 @@ async function logUsage(
   }
 }
 
-const EXTRACT_PROMPT = `You are extracting a structured resume from a LinkedIn "Save to PDF" export.
-
-Rules:
+const BASE_RULES = `Rules:
 - Return VALID JSON matching the provided schema.
-- Preserve reverse-chronological order within Experience and Education.
-- Keep bullet points concise (one line each). Rewrite awkward LinkedIn phrasing lightly, but do not invent facts.
-- Skills: return a flat de-duplicated list of individual skills (no categories).
-- Dates: use short forms like "Jan 2022" or "2022".
-- Leave fields as empty strings/arrays if the PDF doesn't contain them.
-- The summary field: 2-4 sentences from the LinkedIn About section.`;
+- Preserve reverse-chronological order within every dated section.
+- Rewrite awkward phrasing lightly, but NEVER invent facts, employers, dates or publications.
+- Skills: a flat de-duplicated list of individual skills (no categories).
+- Dates: short forms like "Jan 2022" or "2022".
+- Leave fields as empty strings/arrays when the source doesn't contain them.`;
+
+function extractPrompt(docType: DocType, source: "pdf" | "text"): string {
+  const src = source === "pdf"
+    ? `a LinkedIn "Save to PDF" export`
+    : `raw text copied from a professional profile or an existing document`;
+
+  if (docType === "cv_academic") {
+    return `You are extracting a structured ACADEMIC CV from ${src}.
+
+${BASE_RULES}
+- summary: a 3-5 sentence research profile.
+- Populate the CV sections whenever the source supports them: publications (title, authors, venue, year), research (research posts/projects as dated entries with bullets), teaching (courses/TA roles as dated entries), grants (one line each: title, funder, amount, year), talks (one line each: title, event, year), awards, languages, references.
+- Put academic appointments in "experience"; put degrees in "education" with thesis titles as bullets.
+- Do not shorten the record: an academic CV is exhaustive, so keep every role, publication and award you find.`;
+  }
+
+  if (docType === "cv_professional") {
+    return `You are extracting a structured PROFESSIONAL CV from ${src}.
+
+${BASE_RULES}
+- summary: 3-5 sentences covering scope, seniority and domain.
+- Keep the FULL career history — do not trim older roles the way a one-page resume would.
+- Also populate, when present: certifications, awards, languages, projects, publications, references.
+- Bullets: 3-6 per role, action-verb first, quantified where the source allows.`;
+  }
+
+  return `You are extracting a structured RESUME from ${src}.
+
+${BASE_RULES}
+- summary: 2-4 sentences from the About / profile section.
+- Keep bullet points concise (one line each), max 4 per role — a resume is one page.
+- Focus on the most recent and most relevant 3-5 roles.`;
+}
+
 
 const ExtractInput = z.object({
   resumeId: z.string().uuid(),
@@ -41,76 +76,149 @@ const ExtractInput = z.object({
   filename: z.string().optional(),
 });
 
+const TITLE_SUFFIX: Record<DocType, string> = {
+  resume: "Resume",
+  cv_professional: "CV",
+  cv_academic: "Academic CV",
+};
+
+function friendlyAiError(err: unknown, what: string): Error {
+  if (NoObjectGeneratedError.isInstance(err)) {
+    return new Error(`The AI couldn't structure this ${what}. Try a different source or paste your details as text.`);
+  }
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes("429")) return new Error("Rate limit — please try again in a moment.");
+  if (msg.includes("402")) return new Error("Out of AI credits — please add more to continue.");
+  return new Error(`Extraction failed: ${msg}`);
+}
+
+async function runExtraction(opts: {
+  docType: DocType;
+  source: "pdf" | "text";
+  fileDataUrl?: string;
+  text?: string;
+}): Promise<Resume> {
+  const gateway = createLovableAiGateway();
+  const prompt = extractPrompt(opts.docType, opts.source);
+  const content: any[] = [{ type: "text", text: prompt }];
+  if (opts.source === "pdf") {
+    content.push({ type: "file", data: opts.fileDataUrl, mediaType: "application/pdf" });
+  } else {
+    content.push({ type: "text", text: `SOURCE_TEXT:\n${opts.text}` });
+  }
+
+  try {
+    const { object } = await generateObject({
+      model: gateway(DEFAULT_MODEL),
+      schema: ResumeSchema,
+      messages: [{ role: "user", content }],
+    });
+    return ResumeSchema.parse(object);
+  } catch (err: unknown) {
+    if (NoObjectGeneratedError.isInstance(err)) {
+      try {
+        const cleaned = (err.text || "").replace(/```json|```/g, "").trim();
+        return ResumeSchema.parse(JSON.parse(cleaned));
+      } catch {
+        throw friendlyAiError(err, opts.docType === "resume" ? "resume" : "CV");
+      }
+    }
+    throw friendlyAiError(err, opts.docType === "resume" ? "resume" : "CV");
+  }
+}
+
+async function loadOwnedRow(supabase: any, userId: string, resumeId: string) {
+  const { data: row, error } = await supabase
+    .from("resumes").select("id, user_id, doc_type").eq("id", resumeId).single();
+  if (error || !row || row.user_id !== userId) throw new Error("Document not found");
+  return row;
+}
+
+async function saveExtraction(
+  supabase: any, userId: string, resumeId: string, docType: DocType, resume: Resume,
+  kind: string, meta: Record<string, unknown>,
+) {
+  const title = resume.name ? `${resume.name} — ${TITLE_SUFFIX[docType]}` : `Untitled ${TITLE_SUFFIX[docType]}`;
+  const { error } = await supabase.from("resumes").update({ current_json: resume, title }).eq("id", resumeId);
+  if (error) throw new Error(error.message);
+  await logUsage(supabase, userId, kind, resumeId, meta);
+  return title;
+}
+
 /**
  * Upload a LinkedIn PDF, run extraction, save into resumes.current_json.
- * Client creates the resume row (empty) then calls this with the base64 PDF.
+ * Client creates the document row (empty) then calls this with the base64 PDF.
  */
 export const extractResumeFromPdf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ExtractInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-
-    // Verify resume ownership
-    const { data: row, error: rowErr } = await supabase
-      .from("resumes").select("id, user_id").eq("id", data.resumeId).single();
-    if (rowErr || !row || row.user_id !== userId) throw new Error("Resume not found");
+    const row = await loadOwnedRow(supabase, userId, data.resumeId);
+    const docType = ((row.doc_type as DocType) ?? "resume");
 
     const { spendCredits } = await import("./credits.server");
     const credits = await spendCredits(userId, "extract");
 
-    const gateway = createLovableAiGateway();
-
-
-    let resume: Resume;
-    try {
-      const { object } = await generateObject({
-        model: gateway(DEFAULT_MODEL),
-        schema: ResumeSchema,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: EXTRACT_PROMPT },
-              {
-                type: "file",
-                data: data.fileDataUrl,
-                mediaType: "application/pdf",
-              } as any,
-            ],
-          },
-        ],
-      });
-      resume = ResumeSchema.parse(object);
-    } catch (err: unknown) {
-      // Fallback: try parsing the raw text response
-      if (NoObjectGeneratedError.isInstance(err)) {
-        try {
-          const cleaned = (err.text || "").replace(/```json|```/g, "").trim();
-          resume = ResumeSchema.parse(JSON.parse(cleaned));
-        } catch {
-          throw new Error("The AI couldn't structure this resume. Please try a different PDF.");
-        }
-      } else {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes("429")) throw new Error("Rate limit — please try again in a moment.");
-        if (msg.includes("402")) throw new Error("Out of AI credits — please add more to continue.");
-        throw new Error(`Extraction failed: ${msg}`);
-      }
-    }
-
-    // Save
-    const title = resume.name ? `${resume.name} — Resume` : "Untitled resume";
-    const { error: updErr } = await supabase.from("resumes")
-      .update({ current_json: resume, title })
-      .eq("id", data.resumeId);
-    if (updErr) throw new Error(updErr.message);
-
-    await logUsage(supabase, userId, "extract", data.resumeId, { filename: data.filename, credits: credits.spent });
+    const resume = await runExtraction({ docType, source: "pdf", fileDataUrl: data.fileDataUrl });
+    const title = await saveExtraction(supabase, userId, data.resumeId, docType, resume, "extract", {
+      filename: data.filename, credits: credits.spent, doc_type: docType, source: "pdf",
+    });
 
     return { resume, title, credits };
-
   });
+
+// ------------- Import from pasted profile text -------------
+export const importFromText = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ resumeId: z.string().uuid(), text: z.string().min(80) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const row = await loadOwnedRow(supabase, userId, data.resumeId);
+    const docType = ((row.doc_type as DocType) ?? "resume");
+
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "extract");
+
+    const resume = await runExtraction({ docType, source: "text", text: data.text.slice(0, 40000) });
+    const title = await saveExtraction(supabase, userId, data.resumeId, docType, resume, "extract", {
+      credits: credits.spent, doc_type: docType, source: "text",
+    });
+
+    return { resume, title, credits };
+  });
+
+// ------------- Import from a LinkedIn profile URL -------------
+export const importFromProfileUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ resumeId: z.string().uuid(), url: z.string().min(8) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const row = await loadOwnedRow(supabase, userId, data.resumeId);
+    const docType = ((row.doc_type as DocType) ?? "resume");
+
+    const { scrapeProfileMarkdown, ScrapeUnavailableError } = await import("./linkedin-scrape.server");
+    let markdown: string;
+    try {
+      markdown = await scrapeProfileMarkdown(data.url);
+    } catch (err) {
+      if (err instanceof ScrapeUnavailableError) throw new Error(err.message);
+      throw new Error("Couldn't read that URL. Upload your PDF export or paste your profile text instead.");
+    }
+
+    const { spendCredits } = await import("./credits.server");
+    const credits = await spendCredits(userId, "extract");
+
+    const resume = await runExtraction({ docType, source: "text", text: markdown });
+    const title = await saveExtraction(supabase, userId, data.resumeId, docType, resume, "extract", {
+      credits: credits.spent, doc_type: docType, source: "url", url: data.url,
+    });
+
+    return { resume, title, credits };
+  });
+
 
 // ------------- Chat edit (tool-calling) -------------
 
@@ -136,7 +244,9 @@ Rules:
 - Interpret color requests as template intent: black/monochrome → classic or compact; navy/formal → executive; green/emerald → elegant; coral/red/bold → creative; minimal → modern; engineer → technical.
 - If a request would hurt ATS parsing (dark backgrounds, columns, graphics), pick the closest ATS-safe template and briefly note the tradeoff in one sentence.
 - Reasonable inference is fine ("move bachelors above masters" → reorder education).
-- Section keys: "experience", "education", "skills", "certifications", "projects".
+- Section keys: "experience", "education", "skills", "certifications", "projects". CV documents also support: "publications", "research", "teaching", "talks", "grants", "awards", "languages", "references".
+- For CVs, never trim history to fit one page; completeness matters more than brevity.
+- Simple-list sections (skills, certifications, talks, grants, awards, languages) hold plain strings; publications and references hold objects.
 - After edits, confirm what you changed in 1–2 sentences. No bullet lists in the confirmation.
 - If a request is genuinely ambiguous, ask ONE short clarifying question instead of calling tools.
 - Bullets are one line each, action-verb first, quantified when possible.`;
@@ -146,7 +256,7 @@ const ChatEditInput = z.object({
   message: z.string(),
 });
 
-type Section = "experience" | "education" | "skills" | "certifications" | "projects";
+type Section = "experience" | "education" | "skills" | "certifications" | "projects" | "publications" | "research" | "teaching" | "talks" | "grants" | "awards" | "languages" | "references";
 
 function ensureSectionArray(resume: Resume, section: Section): unknown[] {
   const val = (resume as any)[section];
@@ -219,7 +329,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       reorderList: tool({
         description: "Move an item within a section from one index to another.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","skills","certifications","projects"]),
+          section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references"]),
           fromIndex: z.number().int().nonnegative(),
           toIndex: z.number().int().nonnegative(),
         }),
@@ -235,7 +345,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       removeItem: tool({
         description: "Remove an item at an index in a section. For skills/certifications, index is the position in the list.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","skills","certifications","projects"]),
+          section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references"]),
           index: z.number().int().nonnegative(),
         }),
         execute: async ({ section, index }) => {
@@ -248,7 +358,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       }),
       removeSection: tool({
         description: "Clear an entire section.",
-        inputSchema: z.object({ section: z.enum(["experience","education","skills","certifications","projects","summary"]) }),
+        inputSchema: z.object({ section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references","summary"]) }),
         execute: async ({ section }) => {
           if (section === "summary") draft.summary = "";
           else (draft as any)[section] = [];
@@ -259,14 +369,14 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       addItem: tool({
         description: "Add a new item to a section. For skills/certifications, pass { text }. For experience/education/projects, pass the appropriate fields as JSON.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","skills","certifications","projects"]),
+          section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references"]),
           itemJson: z.string().describe("A JSON string for the new item"),
         }),
         execute: async ({ section, itemJson }) => {
           let parsed: any;
           try { parsed = JSON.parse(itemJson); } catch { return { ok: false, error: "invalid itemJson" }; }
           const arr = ensureSectionArray(draft, section);
-          if (section === "skills" || section === "certifications") {
+          if (section === "skills" || section === "certifications" || section === "talks" || section === "grants" || section === "awards" || section === "languages") {
             const s = typeof parsed === "string" ? parsed : parsed.text ?? parsed.name;
             if (s) arr.push(s);
           } else {
@@ -279,7 +389,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       addBullet: tool({
         description: "Add a new bullet to an experience/education/project entry, optionally at a specific index (defaults to end).",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           text: z.string(),
           atIndex: z.number().int().nonnegative().optional(),
@@ -298,7 +408,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       removeBullet: tool({
         description: "Remove a bullet from an experience/education/project entry.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           bulletIndex: z.number().int().nonnegative(),
         }),
@@ -314,7 +424,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       reorderBullets: tool({
         description: "Move a bullet within an entry from one index to another.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           fromIndex: z.number().int().nonnegative(),
           toIndex: z.number().int().nonnegative(),
@@ -332,7 +442,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       updateItemField: tool({
         description: "Update a scalar field on an item inside a section. For experience: title/org/location/start/end/current. For education: school/degree/field/start/end. For projects: name/description.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           field: z.string(),
           value: z.string(),
@@ -360,7 +470,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       rewriteBullet: tool({
         description: "Replace a bullet in an experience/education/project entry.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           bulletIndex: z.number().int().nonnegative(),
           newText: z.string(),
@@ -553,14 +663,24 @@ export const getCredits = createServerFn({ method: "GET" })
 // ------------- Create empty resume (before upload) -------------
 export const createEmptyResume = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z.object({ docType: z.enum(DOC_TYPES).optional() }).optional().parse(i ?? {}))
+  .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const docType: DocType = data?.docType ?? "resume";
     const { data: row, error } = await supabase.from("resumes")
-      .insert({ user_id: userId, current_json: EMPTY_RESUME as any, title: "Untitled resume" })
+      .insert({
+        user_id: userId,
+        current_json: EMPTY_RESUME as any,
+        title: `Untitled ${TITLE_SUFFIX[docType]}`,
+        doc_type: docType,
+        template: defaultTemplateForDocType(docType),
+      })
       .select("id").single();
     if (error) throw new Error(error.message);
-    return { id: row.id as string };
+    return { id: row.id as string, docType };
   });
+
 
 
 export const getResume = createServerFn({ method: "GET" })
@@ -574,6 +694,7 @@ export const getResume = createServerFn({ method: "GET" })
       id: row.id as string,
       title: row.title as string,
       template: row.template as TemplateId,
+      docType: ((row.doc_type as DocType) ?? "resume"),
       resume: ResumeSchema.parse(row.current_json ?? EMPTY_RESUME),
       updated_at: row.updated_at as string,
     };
@@ -584,7 +705,8 @@ export const listResumes = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const { data, error } = await supabase.from("resumes")
-      .select("id, title, template, updated_at").eq("user_id", userId).order("updated_at", { ascending: false });
+      .select("id, title, template, doc_type, updated_at").eq("user_id", userId).order("updated_at", { ascending: false });
+
     if (error) throw new Error(error.message);
     return data ?? [];
   });
