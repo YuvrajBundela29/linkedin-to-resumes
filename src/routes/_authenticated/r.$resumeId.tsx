@@ -154,7 +154,15 @@ function Editor() {
       </div>
     </div>
   );
-  if (rQ.isError || !rQ.data) return <div className="min-h-screen grid place-items-center text-muted-foreground">Couldn't load this resume.</div>;
+  if (rQ.isError || !rQ.data) return (
+    <div className="min-h-screen grid place-items-center px-6">
+      <div className="text-center space-y-4">
+        <p className="text-lg font-semibold">This document isn't available</p>
+        <p className="text-sm text-muted-foreground max-w-sm">It may have been deleted, or it belongs to another account.</p>
+        <Button onClick={() => navigate({ to: "/dashboard" })}>Back to dashboard</Button>
+      </div>
+    </div>
+  );
 
   const { resume, template, title } = rQ.data;
   const docType: DocType = (rQ.data as any).docType ?? "resume";
