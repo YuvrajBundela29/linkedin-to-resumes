@@ -166,20 +166,17 @@ function Editor() {
     <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
 
       <header className="border-b overflow-hidden">
-        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 min-h-14 py-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 min-w-0">
-            <Button variant="ghost" size="sm" asChild className="shrink-0"><Link to="/dashboard"><ArrowLeft className="w-4 h-4" /></Link></Button>
-            <div className="flex items-center gap-2 min-w-0">
-              <Logo className="hidden lg:inline-flex shrink-0" />
-              <span className="shrink-0 rounded-full border border-[color:var(--color-brand)]/40 bg-[color:var(--color-brand)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-brand)]">
-                {DOC_TYPE_META[docType].short}
-              </span>
-              <div className="text-sm text-muted-foreground truncate min-w-0">/ {title}</div>
-            </div>
-
+        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 min-h-14 py-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,18rem)_auto] md:items-center">
+          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+            <Button variant="ghost" size="sm" asChild className="shrink-0 px-2"><Link to="/dashboard"><ArrowLeft className="w-4 h-4" /></Link></Button>
+            <Logo className="hidden xl:inline-flex shrink-0 max-w-[11rem]" />
+            <span className="shrink-0 rounded-full border border-[color:var(--color-brand)]/40 bg-[color:var(--color-brand)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-brand)]">
+              {DOC_TYPE_META[docType].short}
+            </span>
+            <span className="text-sm text-muted-foreground truncate min-w-0">{title}</span>
           </div>
-          <div className="min-w-0 overflow-x-auto pb-1 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max min-w-full items-center gap-1.5 sm:gap-2 md:min-w-0 md:justify-end">
+          <div className="min-w-0 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max min-w-full items-center gap-1.5 sm:gap-2 md:justify-end">
             <Select value={template} onValueChange={(v) => swapMut.mutate(v as TemplateId)}>
               <SelectTrigger className="w-[128px] sm:w-[180px] h-9 shrink-0"><SelectValue /></SelectTrigger>
               <SelectContent>
