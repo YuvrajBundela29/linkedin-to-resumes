@@ -67,18 +67,22 @@ function loadRazorpayScript() {
 function useCountdown() {
   const [left, setLeft] = useState(() => 0);
   useEffect(() => {
-    const end = new Date();
-    end.setUTCHours(24, 0, 0, 0);
+    const now = new Date();
+    // Free credits refresh on the 1st of each month at 00:00 UTC.
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
     const tick = () => setLeft(Math.max(0, end.getTime() - Date.now()));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
-  const h = Math.floor(left / 3_600_000);
+  const d = Math.floor(left / 86_400_000);
+  const h = Math.floor((left % 86_400_000) / 3_600_000);
   const m = Math.floor((left % 3_600_000) / 60_000);
   const s = Math.floor((left % 60_000) / 1000);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const clock = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return d > 0 ? `${d}d ${clock}` : clock;
 }
+
 
 function PackCard({
   pack,
@@ -269,12 +273,12 @@ function UpgradePage() {
             Don't lose the interview<br className="hidden sm:block" /> over 20 free credits.
           </h1>
           <p className="mt-4 text-muted-foreground text-base sm:text-lg">
-            You get <span className="text-foreground font-medium">20 credits every day</span>, free, forever. But a real
+            You get <span className="text-foreground font-medium">20 credits every month</span>, free, forever. But a real
             application sprint — tailoring to 10 job descriptions, rewriting every bullet — burns through that fast.
             Top up once and never edit against a timer again.
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Daily reset in <span className="tabular-nums text-foreground">{countdown}</span></span>
+            <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Monthly reset in <span className="tabular-nums text-foreground">{countdown}</span></span>
             <span className="inline-flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Purchased credits never expire</span>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Encrypted Razorpay checkout</span>
           </div>
@@ -321,7 +325,7 @@ function UpgradePage() {
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: ShieldCheck, title: "Bank-grade security", body: "Payments are handled entirely by Razorpay. We never see or store your card details." },
-            { icon: Sparkles, title: "Credits never expire", body: "Bought credits sit on top of your daily 20 and stay until you use them." },
+            { icon: Sparkles, title: "Credits never expire", body: "Bought credits sit on top of your free monthly 20 and stay until you use them." },
             { icon: BadgeCheck, title: "Every template included", body: "All 15 resume and CV layouts, ATS scoring, tailoring and version history." },
           ].map((t) => (
             <Card key={t.title} className="p-5 border-white/10 bg-background/50 backdrop-blur-xl">
@@ -339,7 +343,7 @@ function UpgradePage() {
             {ordersQ.isLoading ? (
               <div className="p-8 grid place-items-center text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /></div>
             ) : (ordersQ.data?.orders?.length ?? 0) === 0 ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">No purchases yet — you're on the free daily plan.</div>
+              <div className="p-8 text-center text-sm text-muted-foreground">No purchases yet — you're on the free monthly plan.</div>
             ) : (
               <div className="divide-y divide-white/10">
                 {ordersQ.data!.orders.map((o: any) => (

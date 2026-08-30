@@ -50,7 +50,7 @@ export function CreditsBadge({ className }: { className?: string }) {
       <TooltipContent className="max-w-[250px]">
         <p className="font-medium">Credits</p>
         <p className="text-xs opacity-80 mt-1">
-          {max} free credits every day (resets at 00:00 UTC)
+          {max} free credits every month (resets on the 1st, 00:00 UTC)
           {purchased > 0 ? `, plus ${purchased} purchased credits that never expire` : ""}. AI chat edit = 1 credit,
           tailor to a job = 3, import = 5.
         </p>
