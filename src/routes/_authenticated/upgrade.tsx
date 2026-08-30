@@ -291,7 +291,7 @@ function UpgradePage() {
             <Input
               value={promoInput}
               onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-              placeholder="e.g. LAUNCH40"
+              placeholder="Enter your code"
               className="uppercase tracking-wider"
             />
             <Button onClick={() => applyPromo.mutate()} disabled={!promoInput || applyPromo.isPending} variant="outline">
