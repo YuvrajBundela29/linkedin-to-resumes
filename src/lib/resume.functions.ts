@@ -244,7 +244,9 @@ Rules:
 - Interpret color requests as template intent: black/monochrome → classic or compact; navy/formal → executive; green/emerald → elegant; coral/red/bold → creative; minimal → modern; engineer → technical.
 - If a request would hurt ATS parsing (dark backgrounds, columns, graphics), pick the closest ATS-safe template and briefly note the tradeoff in one sentence.
 - Reasonable inference is fine ("move bachelors above masters" → reorder education).
-- Section keys: "experience", "education", "skills", "certifications", "projects".
+- Section keys: "experience", "education", "skills", "certifications", "projects". CV documents also support: "publications", "research", "teaching", "talks", "grants", "awards", "languages", "references".
+- For CVs, never trim history to fit one page; completeness matters more than brevity.
+- Simple-list sections (skills, certifications, talks, grants, awards, languages) hold plain strings; publications and references hold objects.
 - After edits, confirm what you changed in 1–2 sentences. No bullet lists in the confirmation.
 - If a request is genuinely ambiguous, ask ONE short clarifying question instead of calling tools.
 - Bullets are one line each, action-verb first, quantified when possible.`;
@@ -254,7 +256,7 @@ const ChatEditInput = z.object({
   message: z.string(),
 });
 
-type Section = "experience" | "education" | "skills" | "certifications" | "projects";
+type Section = "experience" | "education" | "skills" | "certifications" | "projects" | "publications" | "research" | "teaching" | "talks" | "grants" | "awards" | "languages" | "references";
 
 function ensureSectionArray(resume: Resume, section: Section): unknown[] {
   const val = (resume as any)[section];
@@ -327,7 +329,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       reorderList: tool({
         description: "Move an item within a section from one index to another.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","skills","certifications","projects"]),
+          section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references"]),
           fromIndex: z.number().int().nonnegative(),
           toIndex: z.number().int().nonnegative(),
         }),
@@ -343,7 +345,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       removeItem: tool({
         description: "Remove an item at an index in a section. For skills/certifications, index is the position in the list.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","skills","certifications","projects"]),
+          section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references"]),
           index: z.number().int().nonnegative(),
         }),
         execute: async ({ section, index }) => {
@@ -356,7 +358,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       }),
       removeSection: tool({
         description: "Clear an entire section.",
-        inputSchema: z.object({ section: z.enum(["experience","education","skills","certifications","projects","summary"]) }),
+        inputSchema: z.object({ section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references","summary"]) }),
         execute: async ({ section }) => {
           if (section === "summary") draft.summary = "";
           else (draft as any)[section] = [];
@@ -367,14 +369,14 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       addItem: tool({
         description: "Add a new item to a section. For skills/certifications, pass { text }. For experience/education/projects, pass the appropriate fields as JSON.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","skills","certifications","projects"]),
+          section: z.enum(["experience","education","skills","certifications","projects","publications","research","teaching","talks","grants","awards","languages","references"]),
           itemJson: z.string().describe("A JSON string for the new item"),
         }),
         execute: async ({ section, itemJson }) => {
           let parsed: any;
           try { parsed = JSON.parse(itemJson); } catch { return { ok: false, error: "invalid itemJson" }; }
           const arr = ensureSectionArray(draft, section);
-          if (section === "skills" || section === "certifications") {
+          if (section === "skills" || section === "certifications" || section === "talks" || section === "grants" || section === "awards" || section === "languages") {
             const s = typeof parsed === "string" ? parsed : parsed.text ?? parsed.name;
             if (s) arr.push(s);
           } else {
@@ -387,7 +389,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       addBullet: tool({
         description: "Add a new bullet to an experience/education/project entry, optionally at a specific index (defaults to end).",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           text: z.string(),
           atIndex: z.number().int().nonnegative().optional(),
@@ -406,7 +408,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       removeBullet: tool({
         description: "Remove a bullet from an experience/education/project entry.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           bulletIndex: z.number().int().nonnegative(),
         }),
@@ -422,7 +424,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       reorderBullets: tool({
         description: "Move a bullet within an entry from one index to another.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           fromIndex: z.number().int().nonnegative(),
           toIndex: z.number().int().nonnegative(),
@@ -440,7 +442,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       updateItemField: tool({
         description: "Update a scalar field on an item inside a section. For experience: title/org/location/start/end/current. For education: school/degree/field/start/end. For projects: name/description.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           field: z.string(),
           value: z.string(),
@@ -468,7 +470,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
       rewriteBullet: tool({
         description: "Replace a bullet in an experience/education/project entry.",
         inputSchema: z.object({
-          section: z.enum(["experience","education","projects"]),
+          section: z.enum(["experience","education","projects","research","teaching"]),
           itemIndex: z.number().int().nonnegative(),
           bulletIndex: z.number().int().nonnegative(),
           newText: z.string(),
