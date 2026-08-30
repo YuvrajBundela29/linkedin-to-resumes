@@ -191,7 +191,7 @@ function Editor() {
             </Select>
 
             <CreditsBadge />
-            <TemplateGallery resume={resume} template={template} onSelect={(id) => swapMut.mutate(id)} />
+            <TemplateGallery resume={resume} template={template} onSelect={(id) => swapMut.mutate(id)} allowed={templateOptions} />
             <AtsScoreDialog resume={resume} />
             <CopyPlainTextButton resume={resume} />
 
