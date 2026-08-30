@@ -28,16 +28,47 @@ async function logUsage(
   }
 }
 
-const EXTRACT_PROMPT = `You are extracting a structured resume from a LinkedIn "Save to PDF" export.
-
-Rules:
+const BASE_RULES = `Rules:
 - Return VALID JSON matching the provided schema.
-- Preserve reverse-chronological order within Experience and Education.
-- Keep bullet points concise (one line each). Rewrite awkward LinkedIn phrasing lightly, but do not invent facts.
-- Skills: return a flat de-duplicated list of individual skills (no categories).
-- Dates: use short forms like "Jan 2022" or "2022".
-- Leave fields as empty strings/arrays if the PDF doesn't contain them.
-- The summary field: 2-4 sentences from the LinkedIn About section.`;
+- Preserve reverse-chronological order within every dated section.
+- Rewrite awkward phrasing lightly, but NEVER invent facts, employers, dates or publications.
+- Skills: a flat de-duplicated list of individual skills (no categories).
+- Dates: short forms like "Jan 2022" or "2022".
+- Leave fields as empty strings/arrays when the source doesn't contain them.`;
+
+function extractPrompt(docType: DocType, source: "pdf" | "text"): string {
+  const src = source === "pdf"
+    ? `a LinkedIn "Save to PDF" export`
+    : `raw text copied from a professional profile or an existing document`;
+
+  if (docType === "cv_academic") {
+    return `You are extracting a structured ACADEMIC CV from ${src}.
+
+${BASE_RULES}
+- summary: a 3-5 sentence research profile.
+- Populate the CV sections whenever the source supports them: publications (title, authors, venue, year), research (research posts/projects as dated entries with bullets), teaching (courses/TA roles as dated entries), grants (one line each: title, funder, amount, year), talks (one line each: title, event, year), awards, languages, references.
+- Put academic appointments in "experience"; put degrees in "education" with thesis titles as bullets.
+- Do not shorten the record: an academic CV is exhaustive, so keep every role, publication and award you find.`;
+  }
+
+  if (docType === "cv_professional") {
+    return `You are extracting a structured PROFESSIONAL CV from ${src}.
+
+${BASE_RULES}
+- summary: 3-5 sentences covering scope, seniority and domain.
+- Keep the FULL career history — do not trim older roles the way a one-page resume would.
+- Also populate, when present: certifications, awards, languages, projects, publications, references.
+- Bullets: 3-6 per role, action-verb first, quantified where the source allows.`;
+  }
+
+  return `You are extracting a structured RESUME from ${src}.
+
+${BASE_RULES}
+- summary: 2-4 sentences from the About / profile section.
+- Keep bullet points concise (one line each), max 4 per role — a resume is one page.
+- Focus on the most recent and most relevant 3-5 roles.`;
+}
+
 
 const ExtractInput = z.object({
   resumeId: z.string().uuid(),
