@@ -179,7 +179,7 @@ function Editor() {
             <Select value={template} onValueChange={(v) => swapMut.mutate(v as TemplateId)}>
               <SelectTrigger className="w-[128px] sm:w-[180px] h-9 shrink-0"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {TEMPLATE_IDS.map((id) => (
+                {templateOptions.map((id) => (
                   <SelectItem key={id} value={id}>
                     <span className="inline-flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full" style={{ background: TEMPLATES[id].accent }} />
