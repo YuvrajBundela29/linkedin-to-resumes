@@ -121,6 +121,21 @@ function AdminPage() {
     enabled: !!viewResumeId,
   });
 
+  // All hooks must run before any early return — keep derived data in hooks up here.
+  const userMap = useMemo(
+    () => new Map((q.data?.users ?? []).map((u: any) => [u.id, u])),
+    [q.data?.users],
+  );
+  const filteredUsers = useMemo(() => (q.data?.users ?? []).filter((u: any) =>
+    !search || (u.email ?? "").toLowerCase().includes(search.toLowerCase()) || (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()),
+  ), [q.data?.users, search]);
+  const filteredResumes = useMemo(() => (q.data?.resumes ?? []).filter((r: any) => {
+    if (!search) return true;
+    const u: any = userMap.get(r.user_id);
+    const s = search.toLowerCase();
+    return r.title?.toLowerCase().includes(s) || u?.email?.toLowerCase().includes(s);
+  }), [q.data?.resumes, userMap, search]);
+
   if (gateQ.isLoading) return <div className="min-h-screen grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>;
   if (!unlocked) return <UnlockScreen isAdmin={!!gateQ.data?.isAdmin} onUnlocked={() => gateQ.refetch()} />;
   if (q.isLoading) return <div className="min-h-screen grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>;
@@ -138,18 +153,7 @@ function AdminPage() {
   }
 
   const data = q.data!;
-  const userMap = new Map(data.users.map((u) => [u.id, u]));
 
-  const filteredUsers = data.users.filter((u) =>
-    !search || (u.email ?? "").toLowerCase().includes(search.toLowerCase()) || (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const filteredResumes = useMemo(() => data.resumes.filter((r: any) => {
-    if (!search) return true;
-    const u = userMap.get(r.user_id);
-    const s = search.toLowerCase();
-    return r.title?.toLowerCase().includes(s) || u?.email?.toLowerCase().includes(s);
-  }), [data.resumes, search]);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
