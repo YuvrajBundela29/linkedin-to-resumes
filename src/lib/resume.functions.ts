@@ -129,7 +129,7 @@ async function runExtraction(opts: {
 
 async function loadOwnedRow(supabase: any, userId: string, resumeId: string) {
   const { data: row, error } = await supabase
-    .from("resumes").select("id, user_id, doc_type").eq("id", resumeId).single();
+    .from("resumes").select("id, user_id, doc_type").eq("id", resumeId).maybeSingle();
   if (error || !row || row.user_id !== userId) throw new Error("Document not found");
   return row;
 }
