@@ -304,7 +304,16 @@ function UpgradePage() {
             </div>
           )}
           <div className="mt-3 text-[11px] text-muted-foreground">
-            Try <b>FORGE20</b> for 20% off, or <b>HIREME60</b> while the flash sale lasts.
+            Codes are shared privately.{" "}
+            <a
+              href="https://www.linkedin.com/in/yuvraj-singh-bundela"
+              target="_blank"
+              rel="noreferrer"
+              className="text-[color:var(--color-brand)] underline underline-offset-2"
+            >
+              Message me on LinkedIn
+            </a>{" "}
+            to request a discount code.
           </div>
         </Card>
 
