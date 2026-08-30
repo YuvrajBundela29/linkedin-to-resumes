@@ -692,6 +692,7 @@ export const getResume = createServerFn({ method: "GET" })
       id: row.id as string,
       title: row.title as string,
       template: row.template as TemplateId,
+      docType: ((row.doc_type as DocType) ?? "resume"),
       resume: ResumeSchema.parse(row.current_json ?? EMPTY_RESUME),
       updated_at: row.updated_at as string,
     };
@@ -702,7 +703,8 @@ export const listResumes = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const { data, error } = await supabase.from("resumes")
-      .select("id, title, template, updated_at").eq("user_id", userId).order("updated_at", { ascending: false });
+      .select("id, title, template, doc_type, updated_at").eq("user_id", userId).order("updated_at", { ascending: false });
+
     if (error) throw new Error(error.message);
     return data ?? [];
   });
