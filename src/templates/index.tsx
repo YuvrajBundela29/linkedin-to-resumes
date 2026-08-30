@@ -15,6 +15,9 @@ import { CreativeHtml } from "./creative/Html";
 import { CreativePdf } from "./creative/Pdf";
 import { GenericHtml, type GenericVariant } from "./generic/Html";
 import { GenericPdf } from "./generic/Pdf";
+import { CvHtml } from "./cv/Html";
+import { CvPdf } from "./cv/Pdf";
+
 
 // New enhanced templates built on one shared, ATS-safe layout engine.
 const GENERIC: Record<string, { accent: string; variant: GenericVariant }> = {
@@ -48,7 +51,10 @@ export const TEMPLATES: Record<TemplateId, TemplateMeta> = {
   minimalist:{ id: "minimalist",name: "Minimalist",description: "Hairline rules, maximum whitespace.",       tier: "pro", accent: "#111827" },
   crimson:   { id: "crimson",   name: "Crimson",   description: "Restrained red accents, confident.",        tier: "pro", accent: "#b91c1c" },
   academic:  { id: "academic",  name: "Academic",  description: "Serif, centered — research & CV friendly.", tier: "pro", accent: "#1f3a5f" },
+  cv_standard:{ id: "cv_standard", name: "CV — Standard", description: "Multi-page professional CV with awards, languages, references.", tier: "pro", accent: "#1e3a5f" },
+  cv_academic:{ id: "cv_academic", name: "CV — Academic", description: "Serif academic CV: publications, research, teaching, grants.", tier: "pro", accent: "#3f3f46" },
 };
+
 
 export function HtmlFor({ template, resume }: { template: TemplateId; resume: Resume }) {
   switch (template) {
