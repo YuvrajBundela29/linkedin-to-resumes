@@ -271,7 +271,7 @@ export const applyChatEdit = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     const { data: row, error } = await supabase
-      .from("resumes").select("id, user_id, current_json, template").eq("id", data.resumeId).single();
+      .from("resumes").select("id, user_id, current_json, template").eq("id", data.resumeId).maybeSingle();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
 
     const { spendCredits } = await import("./credits.server");
@@ -598,7 +598,7 @@ export const rollbackVersion = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ resumeId: z.string().uuid(), versionId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: v, error } = await supabase.from("resume_versions").select("snapshot_json, resume_id, user_id").eq("id", data.versionId).single();
+    const { data: v, error } = await supabase.from("resume_versions").select("snapshot_json, resume_id, user_id").eq("id", data.versionId).maybeSingle();
     if (error || !v || v.user_id !== userId || v.resume_id !== data.resumeId) throw new Error("Version not found");
     const { error: updErr } = await supabase.from("resumes").update({ current_json: v.snapshot_json }).eq("id", data.resumeId).eq("user_id", userId);
     if (updErr) throw new Error(updErr.message);
@@ -619,7 +619,7 @@ export const tailorToJobDescription = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
 
-    const { data: row, error } = await supabase.from("resumes").select("current_json, user_id").eq("id", data.resumeId).single();
+    const { data: row, error } = await supabase.from("resumes").select("current_json, user_id").eq("id", data.resumeId).maybeSingle();
     if (error || !row || row.user_id !== userId) throw new Error("Resume not found");
 
     const { spendCredits } = await import("./credits.server");
@@ -727,8 +727,8 @@ export const getAccountSummary = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const [{ data: ent }, { data: prof }, { count: resumeCount }, { data: usage }] = await Promise.all([
-      supabase.from("entitlements").select("*").eq("user_id", userId).single(),
-      supabase.from("profiles").select("full_name, plan").eq("id", userId).single(),
+      supabase.from("entitlements").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("profiles").select("full_name, plan").eq("id", userId).maybeSingle(),
       supabase.from("resumes").select("id", { count: "exact", head: true }).eq("user_id", userId),
       supabase.from("usage_events").select("kind, created_at").eq("user_id", userId).gte("created_at", new Date(Date.now() - 30*24*3600*1000).toISOString()),
     ]);
