@@ -6,17 +6,24 @@ import { Logo } from "@/components/Logo";
 import { CreditsBadge } from "@/components/CreditsBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import {
   listResumes,
   createEmptyResume,
   extractResumeFromPdf,
+  importFromProfileUrl,
+  importFromText,
   deleteResume,
   getIsAdmin,
 } from "@/lib/resume.functions";
+import { DOC_TYPES, DOC_TYPE_META, type DocType } from "@/lib/resume-schema";
 import { toast } from "sonner";
-import { FileText, Loader2, Trash2, Upload, LogOut, User, Shield } from "lucide-react";
+import { FileText, Loader2, Trash2, Upload, LogOut, User, Shield, Link2, ClipboardType } from "lucide-react";
 import { TEMPLATES } from "@/templates";
+
 
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
