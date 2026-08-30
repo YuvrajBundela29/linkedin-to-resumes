@@ -234,7 +234,7 @@ function Dashboard() {
           {resumesQ.isLoading ? (
             <div className="mt-4 text-sm text-muted-foreground">Loading…</div>
           ) : (resumesQ.data?.length ?? 0) === 0 ? (
-            <div className="mt-4 text-sm text-muted-foreground">No resumes yet. Upload one above to get started.</div>
+            <div className="mt-4 text-sm text-muted-foreground">Nothing here yet. Pick a type above and import to get started.</div>
           ) : (
             <div className="mt-4 grid gap-3">
               {resumesQ.data!.map((r) => (
@@ -242,12 +242,18 @@ function Dashboard() {
                   <Link to="/r/$resumeId" params={{ resumeId: r.id }} className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-md bg-[color:var(--color-muted)] grid place-items-center shrink-0"><FileText className="w-5 h-5" /></div>
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{r.title}</div>
+                      <div className="font-medium truncate flex items-center gap-2">
+                        <span className="truncate">{r.title}</span>
+                        <span className="shrink-0 rounded-full border border-[color:var(--color-brand)]/40 bg-[color:var(--color-brand)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-brand)]">
+                          {DOC_TYPE_META[((r as any).doc_type as DocType) ?? "resume"].short}
+                        </span>
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         {TEMPLATES[r.template as keyof typeof TEMPLATES]?.name ?? "Classic"} template · updated {new Date(r.updated_at).toLocaleString()}
                       </div>
                     </div>
                   </Link>
+
                   <Button variant="ghost" size="sm" onClick={() => { if (confirm("Delete this resume?")) delMut.mutate(r.id); }}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
