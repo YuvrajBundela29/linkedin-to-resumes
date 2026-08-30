@@ -16,7 +16,7 @@ import {
   getResume, applyChatEdit, switchTemplate, listVersions, rollbackVersion, listChatMessages,
 } from "@/lib/resume.functions";
 import { TEMPLATES, PdfDocumentFor } from "@/templates";
-import { TEMPLATE_IDS, type TemplateId } from "@/lib/resume-schema";
+import { templatesForDocType, DOC_TYPE_META, type TemplateId, type DocType } from "@/lib/resume-schema";
 import { toast } from "sonner";
 import {
   ArrowLeft, Download, History, Loader2, Send, Sparkles, Target, HelpCircle,
