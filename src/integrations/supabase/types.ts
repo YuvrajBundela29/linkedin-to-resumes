@@ -142,6 +142,7 @@ export type Database = {
         Row: {
           created_at: string
           current_json: Json
+          doc_type: string
           id: string
           template: string
           title: string
@@ -151,6 +152,7 @@ export type Database = {
         Insert: {
           created_at?: string
           current_json?: Json
+          doc_type?: string
           id?: string
           template?: string
           title?: string
@@ -160,6 +162,7 @@ export type Database = {
         Update: {
           created_at?: string
           current_json?: Json
+          doc_type?: string
           id?: string
           template?: string
           title?: string
