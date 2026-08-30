@@ -37,9 +37,14 @@ function Dashboard() {
   const list = useServerFn(listResumes);
   const create = useServerFn(createEmptyResume);
   const extract = useServerFn(extractResumeFromPdf);
+  const fromUrl = useServerFn(importFromProfileUrl);
+  const fromText = useServerFn(importFromText);
   const del = useServerFn(deleteResume);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [docType, setDocType] = useState<DocType>("resume");
+  const [profileUrl, setProfileUrl] = useState("");
+  const [pastedText, setPastedText] = useState("");
 
   const resumesQ = useQuery({ queryKey: ["resumes"], queryFn: () => list() });
   const adminFn = useServerFn(getIsAdmin);
@@ -52,29 +57,34 @@ function Dashboard() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  async function handleUpload(file: File) {
-    if (file.type !== "application/pdf") { toast.error("Please upload a PDF file."); return; }
-    if (file.size > 15 * 1024 * 1024) { toast.error("File too large (max 15MB)."); return; }
+  /** Shared import runner: creates the document, runs `work`, then opens the editor. */
+  async function runImport(work: (id: string) => Promise<unknown>) {
     setUploading(true);
     try {
-      const { id } = await create();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(r.result as string);
-        r.onerror = () => reject(r.error);
-        r.readAsDataURL(file);
-      });
-      toast.info("Analyzing your profile…");
-      await extract({ data: { resumeId: id, fileDataUrl: dataUrl, filename: file.name } });
+      const { id } = await create({ data: { docType } });
+      toast.info(`Building your ${DOC_TYPE_META[docType].short.toLowerCase()}…`);
+      await work(id);
       qc.invalidateQueries({ queryKey: ["credits"] });
+      qc.invalidateQueries({ queryKey: ["resumes"] });
       navigate({ to: "/r/$resumeId", params: { resumeId: id } });
     } catch (e: any) {
       qc.invalidateQueries({ queryKey: ["credits"] });
-      toast.error(e.message ?? "Upload failed");
+      toast.error(e?.message ?? "Import failed");
     } finally {
       setUploading(false);
     }
+  }
 
+  async function handleUpload(file: File) {
+    if (file.type !== "application/pdf") { toast.error("Please upload a PDF file."); return; }
+    if (file.size > 15 * 1024 * 1024) { toast.error("File too large (max 15MB)."); return; }
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+    await runImport((id) => extract({ data: { resumeId: id, fileDataUrl: dataUrl, filename: file.name } }));
   }
 
   async function signOut() {
@@ -106,37 +116,118 @@ function Dashboard() {
       <main className="mx-auto max-w-6xl px-3 sm:px-6 py-6 sm:py-10">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Your resumes</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">Upload a LinkedIn PDF or open one to edit.</p>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Your documents</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Build a resume or a full CV from your LinkedIn — PDF, profile link, or pasted text.</p>
           </div>
         </div>
 
-        {/* Upload zone */}
-        <Card
-          className="p-8 border-dashed border-2 hover:border-[color:var(--color-brand)] transition-colors cursor-pointer"
-          onClick={() => fileRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); }}
-          onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleUpload(f); }}
-        >
-          <input ref={fileRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
-          <div className="flex flex-col items-center text-center">
-            {uploading ? (
-              <>
-                <Loader2 className="w-8 h-8 text-[color:var(--color-brand)] animate-spin" />
-                <div className="mt-3 font-medium">Analyzing your profile…</div>
-                <div className="text-sm text-muted-foreground">This usually takes about 15 seconds.</div>
-              </>
-            ) : (
-              <>
-                <div className="w-12 h-12 rounded-full bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] grid place-items-center">
-                  <Upload className="w-6 h-6" />
-                </div>
-                <div className="mt-3 font-medium">Drop your LinkedIn "Save to PDF" here</div>
-                <div className="text-sm text-muted-foreground">or click to browse. PDF only, up to 15MB.</div>
-              </>
-            )}
+        {/* Step 1 — document type */}
+        <div className="mb-4">
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">1 · What are we building?</div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {DOC_TYPES.map((t) => {
+              const active = docType === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setDocType(t)}
+                  className={`text-left rounded-xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg ${active ? "border-[color:var(--color-brand)] ring-2 ring-[color:var(--color-brand)]/40 bg-[color:var(--color-brand)]/[0.06]" : "border-border"}`}
+                >
+                  <div className="font-medium">{DOC_TYPE_META[t].label}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{DOC_TYPE_META[t].description}</div>
+                </button>
+              );
+            })}
           </div>
-        </Card>
+        </div>
+
+        {/* Step 2 — import source */}
+        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">2 · Where should we read from?</div>
+        <Tabs defaultValue="pdf">
+          <TabsList className="mb-3">
+            <TabsTrigger value="pdf" className="gap-1.5"><Upload className="w-4 h-4" /> PDF</TabsTrigger>
+            <TabsTrigger value="url" className="gap-1.5"><Link2 className="w-4 h-4" /> Profile link</TabsTrigger>
+            <TabsTrigger value="text" className="gap-1.5"><ClipboardType className="w-4 h-4" /> Paste text</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pdf">
+            <Card
+              className={`p-8 border-dashed border-2 transition-colors ${uploading ? "opacity-70" : "hover:border-[color:var(--color-brand)] cursor-pointer"}`}
+              onClick={() => { if (!uploading) fileRef.current?.click(); }}
+              onDragOver={(e) => { e.preventDefault(); }}
+              onDrop={(e) => { e.preventDefault(); if (uploading) return; const f = e.dataTransfer.files[0]; if (f) handleUpload(f); }}
+            >
+              <input ref={fileRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
+              <div className="flex flex-col items-center text-center">
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-8 h-8 text-[color:var(--color-brand)] animate-spin" />
+                    <div className="mt-3 font-medium">Analyzing your profile…</div>
+                    <div className="text-sm text-muted-foreground">This usually takes about 15 seconds.</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] grid place-items-center">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <div className="mt-3 font-medium">Drop your LinkedIn "Save to PDF" here</div>
+                    <div className="text-sm text-muted-foreground">or click to browse. PDF only, up to 15MB.</div>
+                  </>
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="url">
+            <Card className="p-6">
+              <div className="font-medium">Paste a LinkedIn profile URL</div>
+              <p className="text-sm text-muted-foreground mt-1">
+                We read the public version of the profile. Many profiles are login-walled — if that happens, use the PDF or paste-text option.
+              </p>
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                <Input
+                  placeholder="https://www.linkedin.com/in/your-handle"
+                  value={profileUrl}
+                  onChange={(e) => setProfileUrl(e.target.value)}
+                  disabled={uploading}
+                />
+                <Button
+                  disabled={uploading || profileUrl.trim().length < 8}
+                  onClick={() => runImport((id) => fromUrl({ data: { resumeId: id, url: profileUrl.trim() } }))}
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Analyze profile"}
+                </Button>
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="text">
+            <Card className="p-6">
+              <div className="font-medium">Paste your profile or existing document text</div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Select everything on your LinkedIn profile (or an old resume/CV) and paste it here. Works every time.
+              </p>
+              <Textarea
+                className="mt-4 min-h-[180px]"
+                placeholder="Paste your experience, education, skills…"
+                value={pastedText}
+                onChange={(e) => setPastedText(e.target.value)}
+                disabled={uploading}
+              />
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">{pastedText.trim().length} characters (minimum 80)</span>
+                <Button
+                  disabled={uploading || pastedText.trim().length < 80}
+                  onClick={() => runImport((id) => fromText({ data: { resumeId: id, text: pastedText.trim() } }))}
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : `Build my ${DOC_TYPE_META[docType].short.toLowerCase()}`}
+                </Button>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
 
         <div className="mt-10">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Recent</h2>
