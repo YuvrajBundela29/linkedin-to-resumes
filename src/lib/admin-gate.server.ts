@@ -10,7 +10,9 @@ function sessionConfig() {
     password,
     name: "rf-admin-gate",
     maxAge: 60 * 60 * 4, // 4 hours
-    cookie: { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/" },
+    // sameSite "none" is required because the app is viewed inside the Lovable
+    // preview iframe — a "lax" cookie is dropped there, so the unlock never sticks.
+    cookie: { httpOnly: true, secure: true, sameSite: "none" as const, path: "/" },
   };
 }
 
