@@ -67,15 +67,21 @@ function AuthPage() {
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
       });
       if (result.error) throw result.error;
       if (result.redirected) return;
       navigate({ to: dest as any, replace: true });
     } catch (err: any) {
-      toast.error(err?.message ?? "Google sign-in failed");
+      toast.error(
+        err?.message?.includes("500") || err?.status === 500
+          ? "Google is temporarily unavailable. Please try again or use email."
+          : (err?.message ?? "Google sign-in failed"),
+      );
       setBusy(false);
     }
   }
+
 
   return (
     <div className="min-h-screen grid place-items-center bg-[color:var(--color-surface)] px-4">
