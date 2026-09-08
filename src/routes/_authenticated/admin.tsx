@@ -11,6 +11,8 @@ import { ResumePreview } from "@/components/ResumePreview";
 import { getAdminOverview, getResumeConversation } from "@/lib/resume.functions";
 import { getAdminGateStatus, unlockAdminPortal, lockAdminPortal } from "@/lib/admin-gate.functions";
 import { getRevenueOverview } from "@/lib/payments.functions";
+import { grantCreditsToUser } from "@/lib/admin-credits.functions";
+
 import { formatINR } from "@/lib/pricing";
 import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut, IndianRupee, Tag, Gift } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -389,6 +391,65 @@ function AdminPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <GrantCreditsDialog user={grantUser} onClose={() => setGrantUser(null)} onDone={() => q.refetch()} />
     </div>
   );
 }
+
+function GrantCreditsDialog({ user, onClose, onDone }: { user: any | null; onClose: () => void; onDone: () => void }) {
+  const grant = useServerFn(grantCreditsToUser);
+  const [amount, setAmount] = useState("50");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const credits = Number(amount);
+    if (!Number.isInteger(credits) || credits < 1) { setErr("Enter a whole number of credits."); return; }
+    setBusy(true); setErr(""); setMsg("");
+    try {
+      const res = await grant({ data: { userId: user.id, credits, note: note || undefined } });
+      setMsg(`Added ${res.granted} credits — new balance ${res.total}.`);
+      setNote("");
+      onDone();
+    } catch {
+      setErr("Could not add credits. Try again.");
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => { if (!o) { onClose(); setMsg(""); setErr(""); } }}>
+      <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border-white/10">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Gift className="w-4 h-4 text-[color:var(--color-brand)]" /> Give credits
+          </DialogTitle>
+        </DialogHeader>
+        <div className="text-sm text-muted-foreground -mt-2">
+          {user?.email || user?.full_name || "User"} · current balance {user?.credits ?? "—"}
+        </div>
+        <form onSubmit={submit} className="mt-3 space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {[20, 50, 100, 500].map((n) => (
+              <Button key={n} type="button" size="sm" variant={amount === String(n) ? "default" : "outline"} onClick={() => setAmount(String(n))}>
+                +{n}
+              </Button>
+            ))}
+          </div>
+          <Input type="number" min={1} value={amount} onChange={(e) => { setAmount(e.target.value); setErr(""); }} placeholder="Credits" />
+          <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional, e.g. support gift)" />
+          {err && <div className="text-xs text-red-500">{err}</div>}
+          {msg && <div className="text-xs text-emerald-500">{msg}</div>}
+          <Button type="submit" className="w-full" disabled={busy}>
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add credits"}
+          </Button>
+          <p className="text-[11px] text-muted-foreground">Granted credits never expire and are used after the free monthly allowance.</p>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
