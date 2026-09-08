@@ -208,20 +208,27 @@ function AdminPage() {
         <Card className="mt-6 overflow-hidden border border-white/40 bg-background/70 backdrop-blur-xl shadow-[0_25px_60px_-30px_rgba(0,0,0,0.35)]">
           {tab === "users" && (
             <div className="divide-y">
-              <div className="grid grid-cols-[1fr_1fr_120px_180px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground bg-[color:var(--color-surface)]/60">
-                <div>User</div><div>Email</div><div>Plan</div><div>Last sign-in</div>
+              <div className="grid grid-cols-[1fr_1fr_100px_110px_150px_120px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground bg-[color:var(--color-surface)]/60">
+                <div>User</div><div>Email</div><div>Plan</div><div>Credits</div><div>Last sign-in</div><div className="text-right">Credits</div>
               </div>
               {filteredUsers.map((u) => (
-                <div key={u.id} className="grid grid-cols-[1fr_1fr_120px_180px] gap-4 px-6 py-3 items-center hover:bg-[color:var(--color-accent)]/40 transition-colors">
+                <div key={u.id} className="grid grid-cols-[1fr_1fr_100px_110px_150px_120px] gap-4 px-6 py-3 items-center hover:bg-[color:var(--color-accent)]/40 transition-colors">
                   <div className="font-medium truncate">{u.full_name || "—"}</div>
                   <div className="text-sm text-muted-foreground truncate">{u.email || "—"}</div>
                   <div className="text-xs"><span className="inline-block px-2 py-0.5 rounded-full bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] capitalize">{u.plan}</span></div>
+                  <div className="text-sm font-medium tabular-nums">{u.credits ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">{u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleString() : "Never"}</div>
+                  <div className="text-right">
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setGrantUser(u)}>
+                      <Gift className="w-3.5 h-3.5" /> Grant
+                    </Button>
+                  </div>
                 </div>
               ))}
               {filteredUsers.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No users match.</div>}
             </div>
           )}
+
 
           {tab === "resumes" && (
             <div className="divide-y">
