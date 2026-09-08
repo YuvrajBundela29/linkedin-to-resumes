@@ -764,14 +764,18 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     await assertAdmin(supabase, userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [{ data: users }, { data: profiles }, { data: resumes }, { data: usage }, { count: totalResumes }, { count: totalUsers }] = await Promise.all([
+    const [{ data: users }, { data: profiles }, { data: resumes }, { data: usage }, { count: totalResumes }, { count: totalUsers }, { data: credits }] = await Promise.all([
       supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }).then((r: any) => ({ data: r.data?.users ?? [] })),
       supabaseAdmin.from("profiles").select("id, full_name, plan, created_at").order("created_at", { ascending: false }),
       supabaseAdmin.from("resumes").select("id, user_id, title, template, updated_at, created_at").order("updated_at", { ascending: false }).limit(500),
       supabaseAdmin.from("usage_events").select("user_id, kind, resume_id, created_at, meta").order("created_at", { ascending: false }).limit(500),
       supabaseAdmin.from("resumes").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("user_credits").select("user_id, credits, purchased_credits"),
     ]);
+
+    const creditMap = new Map<string, number>();
+    for (const c of (credits ?? []) as any[]) creditMap.set(c.user_id, (c.credits ?? 0) + (c.purchased_credits ?? 0));
 
     const userMap = new Map<string, { email: string | null; last_sign_in_at: string | null; created_at: string }>();
     for (const u of users as any[]) userMap.set(u.id, { email: u.email ?? null, last_sign_in_at: u.last_sign_in_at ?? null, created_at: u.created_at });
@@ -789,7 +793,9 @@ export const getAdminOverview = createServerFn({ method: "GET" })
         created_at: p.created_at,
         email: userMap.get(p.id)?.email ?? null,
         last_sign_in_at: userMap.get(p.id)?.last_sign_in_at ?? null,
+        credits: creditMap.has(p.id) ? creditMap.get(p.id)! : 20,
       })),
+
       resumes: resumes ?? [],
       usage: usage ?? [],
     };

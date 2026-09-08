@@ -11,8 +11,10 @@ import { ResumePreview } from "@/components/ResumePreview";
 import { getAdminOverview, getResumeConversation } from "@/lib/resume.functions";
 import { getAdminGateStatus, unlockAdminPortal, lockAdminPortal } from "@/lib/admin-gate.functions";
 import { getRevenueOverview } from "@/lib/payments.functions";
+import { grantCreditsToUser } from "@/lib/admin-credits.functions";
+
 import { formatINR } from "@/lib/pricing";
-import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut, IndianRupee, Tag } from "lucide-react";
+import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut, IndianRupee, Tag, Gift } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { TEMPLATES } from "@/templates";
 import type { TemplateId } from "@/lib/resume-schema";
@@ -114,6 +116,8 @@ function AdminPage() {
   const [tab, setTab] = useState<"users" | "resumes" | "activity" | "revenue">("users");
   const [search, setSearch] = useState("");
   const [viewResumeId, setViewResumeId] = useState<string | null>(null);
+  const [grantUser, setGrantUser] = useState<any | null>(null);
+
   const getConv = useServerFn(getResumeConversation);
   const convQ = useQuery({
     queryKey: ["conversation", viewResumeId],
@@ -208,20 +212,27 @@ function AdminPage() {
         <Card className="mt-6 overflow-hidden border border-white/40 bg-background/70 backdrop-blur-xl shadow-[0_25px_60px_-30px_rgba(0,0,0,0.35)]">
           {tab === "users" && (
             <div className="divide-y">
-              <div className="grid grid-cols-[1fr_1fr_120px_180px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground bg-[color:var(--color-surface)]/60">
-                <div>User</div><div>Email</div><div>Plan</div><div>Last sign-in</div>
+              <div className="grid grid-cols-[1fr_1fr_100px_110px_150px_120px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground bg-[color:var(--color-surface)]/60">
+                <div>User</div><div>Email</div><div>Plan</div><div>Credits</div><div>Last sign-in</div><div className="text-right">Credits</div>
               </div>
               {filteredUsers.map((u) => (
-                <div key={u.id} className="grid grid-cols-[1fr_1fr_120px_180px] gap-4 px-6 py-3 items-center hover:bg-[color:var(--color-accent)]/40 transition-colors">
+                <div key={u.id} className="grid grid-cols-[1fr_1fr_100px_110px_150px_120px] gap-4 px-6 py-3 items-center hover:bg-[color:var(--color-accent)]/40 transition-colors">
                   <div className="font-medium truncate">{u.full_name || "—"}</div>
                   <div className="text-sm text-muted-foreground truncate">{u.email || "—"}</div>
                   <div className="text-xs"><span className="inline-block px-2 py-0.5 rounded-full bg-[color:var(--color-brand)]/10 text-[color:var(--color-brand)] capitalize">{u.plan}</span></div>
+                  <div className="text-sm font-medium tabular-nums">{u.credits ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">{u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleString() : "Never"}</div>
+                  <div className="text-right">
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setGrantUser(u)}>
+                      <Gift className="w-3.5 h-3.5" /> Grant
+                    </Button>
+                  </div>
                 </div>
               ))}
               {filteredUsers.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No users match.</div>}
             </div>
           )}
+
 
           {tab === "resumes" && (
             <div className="divide-y">
@@ -380,6 +391,65 @@ function AdminPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <GrantCreditsDialog user={grantUser} onClose={() => setGrantUser(null)} onDone={() => q.refetch()} />
     </div>
   );
 }
+
+function GrantCreditsDialog({ user, onClose, onDone }: { user: any | null; onClose: () => void; onDone: () => void }) {
+  const grant = useServerFn(grantCreditsToUser);
+  const [amount, setAmount] = useState("50");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const credits = Number(amount);
+    if (!Number.isInteger(credits) || credits < 1) { setErr("Enter a whole number of credits."); return; }
+    setBusy(true); setErr(""); setMsg("");
+    try {
+      const res = await grant({ data: { userId: user.id, credits, note: note || undefined } });
+      setMsg(`Added ${res.granted} credits — new balance ${res.total}.`);
+      setNote("");
+      onDone();
+    } catch {
+      setErr("Could not add credits. Try again.");
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => { if (!o) { onClose(); setMsg(""); setErr(""); } }}>
+      <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border-white/10">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Gift className="w-4 h-4 text-[color:var(--color-brand)]" /> Give credits
+          </DialogTitle>
+        </DialogHeader>
+        <div className="text-sm text-muted-foreground -mt-2">
+          {user?.email || user?.full_name || "User"} · current balance {user?.credits ?? "—"}
+        </div>
+        <form onSubmit={submit} className="mt-3 space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {[20, 50, 100, 500].map((n) => (
+              <Button key={n} type="button" size="sm" variant={amount === String(n) ? "default" : "outline"} onClick={() => setAmount(String(n))}>
+                +{n}
+              </Button>
+            ))}
+          </div>
+          <Input type="number" min={1} value={amount} onChange={(e) => { setAmount(e.target.value); setErr(""); }} placeholder="Credits" />
+          <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional, e.g. support gift)" />
+          {err && <div className="text-xs text-red-500">{err}</div>}
+          {msg && <div className="text-xs text-emerald-500">{msg}</div>}
+          <Button type="submit" className="w-full" disabled={busy}>
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add credits"}
+          </Button>
+          <p className="text-[11px] text-muted-foreground">Granted credits never expire and are used after the free monthly allowance.</p>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
