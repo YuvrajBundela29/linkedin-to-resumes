@@ -12,7 +12,7 @@ import { getAdminOverview, getResumeConversation } from "@/lib/resume.functions"
 import { getAdminGateStatus, unlockAdminPortal, lockAdminPortal } from "@/lib/admin-gate.functions";
 import { getRevenueOverview } from "@/lib/payments.functions";
 import { formatINR } from "@/lib/pricing";
-import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut, IndianRupee, Tag } from "lucide-react";
+import { ArrowLeft, Shield, Users, FileText, Activity, Search, Loader2, MessageSquare, Eye, Lock, LogOut, IndianRupee, Tag, Gift } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { TEMPLATES } from "@/templates";
 import type { TemplateId } from "@/lib/resume-schema";
@@ -114,6 +114,8 @@ function AdminPage() {
   const [tab, setTab] = useState<"users" | "resumes" | "activity" | "revenue">("users");
   const [search, setSearch] = useState("");
   const [viewResumeId, setViewResumeId] = useState<string | null>(null);
+  const [grantUser, setGrantUser] = useState<any | null>(null);
+
   const getConv = useServerFn(getResumeConversation);
   const convQ = useQuery({
     queryKey: ["conversation", viewResumeId],
