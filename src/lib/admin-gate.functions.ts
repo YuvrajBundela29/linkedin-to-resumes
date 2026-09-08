@@ -16,9 +16,8 @@ export const getAdminGateStatus = createServerFn({ method: "GET" })
     const { data } = await supabase
       .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
     if (!data) return { isAdmin: false, unlocked: false };
-    const { getAdminSession } = await import("./admin-gate.server");
-    const session = await getAdminSession();
-    return { isAdmin: true, unlocked: !!session.data.unlocked && session.data.userId === userId };
+    const { isUnlocked } = await import("./admin-gate.server");
+    return { isAdmin: true, unlocked: await isUnlocked(userId) };
   });
 
 export const unlockAdminPortal = createServerFn({ method: "POST" })
@@ -31,19 +30,31 @@ export const unlockAdminPortal = createServerFn({ method: "POST" })
     const expected = process.env.ADMIN_PORTAL_PASSWORD;
     if (!expected) throw new Error("Admin portal password is not configured");
 
-    const { passwordMatches, getAdminSession } = await import("./admin-gate.server");
+    const { passwordMatches, recordUnlock, getAdminSession } = await import("./admin-gate.server");
     // Constant-ish delay to blunt online guessing.
     await new Promise((r) => setTimeout(r, 400));
     if (!passwordMatches(data.password, expected)) return { ok: false as const };
 
-    const session = await getAdminSession();
-    await session.update({ unlocked: true, userId });
+    await recordUnlock(userId);
+    try {
+      const session = await getAdminSession();
+      await session.update({ unlocked: true, userId });
+    } catch {
+      /* cookie may be unavailable in embedded previews; the database record covers it */
+    }
     return { ok: true as const };
   });
 
-export const lockAdminPortal = createServerFn({ method: "POST" }).handler(async () => {
-  const { getAdminSession } = await import("./admin-gate.server");
-  const session = await getAdminSession();
-  await session.clear();
-  return { ok: true as const };
-});
+export const lockAdminPortal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { clearUnlock, getAdminSession } = await import("./admin-gate.server");
+    await clearUnlock(context.userId);
+    try {
+      const session = await getAdminSession();
+      await session.clear();
+    } catch {
+      /* nothing to clear */
+    }
+    return { ok: true as const };
+  });
