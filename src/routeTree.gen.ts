@@ -9,22 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as BlogHowToExportLinkedinToResumeRouteImport } from './routes/blog.how-to-export-linkedin-to-resume'
-import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
+import { Route as BlogHowToExportLinkedinToResumeRouteImport } from './routes/blog.how-to-export-linkedin-to-resume'
 import { Route as AuthenticatedRResumeIdRouteImport } from './routes/_authenticated/r.$resumeId'
-import { Route as ApiResumeResumeIdPdfRouteImport } from './routes/api/resume.$resumeId.pdf'
 import { Route as AuthenticatedRResumeIdTailorRouteImport } from './routes/_authenticated/r.$resumeId.tailor'
+import { Route as ApiResumeResumeIdPdfRouteImport } from './routes/api/resume.$resumeId.pdf'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -32,29 +36,14 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogHowToExportLinkedinToResumeRoute =
-  BlogHowToExportLinkedinToResumeRouteImport.update({
-    id: '/blog/how-to-export-linkedin-to-resume',
-    path: '/blog/how-to-export-linkedin-to-resume',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
-  id: '/upgrade',
-  path: '/upgrade',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -62,20 +51,26 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const BlogHowToExportLinkedinToResumeRoute =
+  BlogHowToExportLinkedinToResumeRouteImport.update({
+    id: '/blog/how-to-export-linkedin-to-resume',
+    path: '/blog/how-to-export-linkedin-to-resume',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedRResumeIdRoute = AuthenticatedRResumeIdRouteImport.update({
   id: '/r/$resumeId',
   path: '/r/$resumeId',
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const ApiResumeResumeIdPdfRoute = ApiResumeResumeIdPdfRouteImport.update({
-  id: '/api/resume/$resumeId/pdf',
-  path: '/api/resume/$resumeId/pdf',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRResumeIdTailorRoute =
   AuthenticatedRResumeIdTailorRouteImport.update({
@@ -83,6 +78,11 @@ const AuthenticatedRResumeIdTailorRoute =
     path: '/tailor',
     getParentRoute: () => AuthenticatedRResumeIdRoute,
   } as any)
+const ApiResumeResumeIdPdfRoute = ApiResumeResumeIdPdfRouteImport.update({
+  id: '/api/resume/$resumeId/pdf',
+  path: '/api/resume/$resumeId/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -179,18 +179,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -200,32 +193,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/how-to-export-linkedin-to-resume': {
-      id: '/blog/how-to-export-linkedin-to-resume'
-      path: '/blog/how-to-export-linkedin-to-resume'
-      fullPath: '/blog/how-to-export-linkedin-to-resume'
-      preLoaderRoute: typeof BlogHowToExportLinkedinToResumeRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/upgrade': {
-      id: '/_authenticated/upgrade'
-      path: '/upgrade'
-      fullPath: '/upgrade'
-      preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
@@ -235,12 +221,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/account': {
-      id: '/_authenticated/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/upgrade': {
+      id: '/_authenticated/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/blog/how-to-export-linkedin-to-resume': {
+      id: '/blog/how-to-export-linkedin-to-resume'
+      path: '/blog/how-to-export-linkedin-to-resume'
+      fullPath: '/blog/how-to-export-linkedin-to-resume'
+      preLoaderRoute: typeof BlogHowToExportLinkedinToResumeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/r/$resumeId': {
       id: '/_authenticated/r/$resumeId'
@@ -249,19 +249,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRResumeIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/resume/$resumeId/pdf': {
-      id: '/api/resume/$resumeId/pdf'
-      path: '/api/resume/$resumeId/pdf'
-      fullPath: '/api/resume/$resumeId/pdf'
-      preLoaderRoute: typeof ApiResumeResumeIdPdfRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/r/$resumeId/tailor': {
       id: '/_authenticated/r/$resumeId/tailor'
       path: '/tailor'
       fullPath: '/r/$resumeId/tailor'
       preLoaderRoute: typeof AuthenticatedRResumeIdTailorRouteImport
       parentRoute: typeof AuthenticatedRResumeIdRoute
+    }
+    '/api/resume/$resumeId/pdf': {
+      id: '/api/resume/$resumeId/pdf'
+      path: '/api/resume/$resumeId/pdf'
+      fullPath: '/api/resume/$resumeId/pdf'
+      preLoaderRoute: typeof ApiResumeResumeIdPdfRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
